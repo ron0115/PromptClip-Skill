@@ -1,4 +1,4 @@
-# 通用视频精华片段提取器 MVP 规格
+# PromptClip-Skill 通用视频精华片段提取器 MVP 规格
 
 ## Problem Statement
 

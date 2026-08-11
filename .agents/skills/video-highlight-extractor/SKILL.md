@@ -3,7 +3,7 @@ name: video-highlight-extractor
 description: Use when a user asks to find memorable, useful, or Prompt-matching segments from local video files or folders and export selected clips.
 ---
 
-# Video Highlight Extractor
+# PromptClip-Skill Video Highlight Extractor
 
 Use a generic, Agent-in-the-loop workflow. The user supplies a local video path and a natural-language Prompt at runtime. Baby videos, travel, pets, sports, and other themes are only Prompt examples; never hard-code a domain into the pipeline.
 

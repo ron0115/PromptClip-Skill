@@ -156,7 +156,7 @@ def _write_fcpxml(
 ) -> None:
     fcpxml = Element("fcpxml", version="1.10")
     resources = SubElement(fcpxml, "resources")
-    format_node = SubElement(resources, "format", id="r-format", name="Video Highlight MVP")
+    format_node = SubElement(resources, "format", id="r-format", name="PromptClip-Skill")
     format_node.set("frameDuration", "1001/48000s")
     asset_ids: dict[str, str] = {}
     for index, asset in enumerate(assets.values(), start=1):
@@ -174,8 +174,8 @@ def _write_fcpxml(
             format="r-format",
         )
     library = SubElement(fcpxml, "library")
-    event = SubElement(library, "event", name="Video Highlight MVP")
-    project = SubElement(event, "project", name="Video Highlight MVP")
+    event = SubElement(library, "event", name="PromptClip-Skill")
+    project = SubElement(event, "project", name="PromptClip-Skill")
     sequence = SubElement(project, "sequence", format="r-format", duration="0s")
     spine = SubElement(sequence, "spine")
     offset = 0.0

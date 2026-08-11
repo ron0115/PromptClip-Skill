@@ -21,7 +21,7 @@ def _add_common_run_argument(parser: argparse.ArgumentParser) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="video-highlight",
-        description="Prompt-driven local video highlight extraction MVP",
+        description="PromptClip-Skill prompt-driven local video highlight extraction",
     )
     commands = parser.add_subparsers(dest="command", required=True)
 

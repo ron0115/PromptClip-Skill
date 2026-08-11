@@ -1,10 +1,14 @@
-# Video Highlight Extractor MVP
+# PromptClip-Skill
 
-This is a local-first, prompt-driven video highlight extractor. The input media is never modified. A run creates a low-resolution frame index, lets a Codex sub-agent inspect bounded timestamped frame batches, supports local review, and exports selected clips plus JSON and FCPXML.
+PromptClip-Skill is a local-first, prompt-driven tool for finding and exporting the best moments from any video collection. It never modifies the input media. A run creates a low-resolution frame index, lets a Codex sub-agent inspect bounded timestamped frame batches, supports local review, and exports selected clips plus JSON and FCPXML.
+
+Repository: https://github.com/ron0115/PromptClip-Skill
+
+The repository is named `PromptClip-Skill`; `video-highlight-extractor` remains the stable Codex Skill and Python package name for compatibility.
 
 ## Codex Skill mode
 
-Use the generic `/video-highlight-extractor` Skill in Codex and provide a local folder plus a natural-language Prompt. The Skill uses hardware-accelerated proxy extraction when available, runs the optional local face prefilter for face-specific Prompts, sends one bounded storyboard/refinement batch per Agent, validates `window_id` decisions, opens the review page, and exports accepted clips. This path does not require an API key or model environment variable.
+Use `/video-highlight-extractor` in Codex and provide a local folder plus a natural-language Prompt. Baby videos are only one example: the same workflow can select travel, pets, sports, events, or any other subject described by the Prompt. The Skill uses hardware-accelerated proxy extraction when available, runs the optional local face prefilter for face-specific Prompts, sends one bounded storyboard/refinement batch per Agent, validates `window_id` decisions, opens the review page, and exports accepted clips. This path does not require an API key or model environment variable.
 
 ## Quick start
 
