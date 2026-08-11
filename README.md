@@ -1,6 +1,6 @@
 # PromptClip-Skill
 
-PromptClip-Skill is a local-first, prompt-driven tool for finding and exporting the best moments from any video collection. It never modifies the input media. A run creates a low-resolution frame index, lets a Codex sub-agent inspect bounded timestamped frame batches, supports local review, and exports selected clips plus JSON and FCPXML.
+PromptClip-Skill is a local-first, prompt-driven tool for finding and exporting the best moments from any video collection. It never modifies the input media. A run creates a low-resolution frame index, lets Codex sub-agents inspect bounded timestamped frame batches, supports fast and precise edit modes, and exports selected clips plus JSON and FCPXML.
 
 Repository: https://github.com/ron0115/PromptClip-Skill
 
@@ -8,7 +8,9 @@ The repository is named `PromptClip-Skill`; `video-highlight-extractor` remains 
 
 ## Codex Skill mode
 
-Use `/video-highlight-extractor` in Codex and provide a local folder plus a natural-language Prompt. Baby videos are only one example: the same workflow can select travel, pets, sports, events, or any other subject described by the Prompt. The Skill uses hardware-accelerated proxy extraction when available, runs the optional local face prefilter for face-specific Prompts, sends one bounded storyboard/refinement batch per Agent, validates `window_id` decisions, opens the review page, and exports accepted clips. This path does not require an API key or model environment variable.
+Use `/video-highlight-extractor` in Codex and provide a local folder plus a natural-language Prompt. Baby videos are only one example: the same workflow can select travel, pets, sports, events, or any other subject described by the Prompt. The Skill uses hardware-accelerated proxy extraction when available, runs the optional local face prefilter for face-specific Prompts, sends bounded storyboard/refinement batches to at most two Agents, validates decisions, opens the review page, and exports clips. This path does not require an API key or model environment variable.
+
+The default mode is `fast`: it stops after storyboard analysis and exports padded storyboard candidates with `--include-pending`. Use `precise` when the Prompt explicitly requires exact boundaries or frame-level compliance; it adds the refinement pass and exports accepted candidates only. Both modes share the same scan, storyboard, Agent result contract, MP4, JSON, and FCPXML output structure.
 
 ## Quick start
 
@@ -24,6 +26,8 @@ python3 -m video_highlight process \
 ```
 
 The `mock` provider is deterministic and exists only to validate the local pipeline in automated tests. It does not understand video content and should not be used for a user-facing result.
+
+The `process` command above is a compatibility/test entry point. The user-facing Agent workflow and its `fast`/`precise` mode selection are defined by `/video-highlight-extractor`.
 
 Start the review page for a run:
 

@@ -68,6 +68,74 @@ class ExportTests(unittest.TestCase):
             )
             self.assertGreater(float(json.loads(probe.stdout)["format"]["duration"]), 1.5)
 
+    def test_fast_mode_exports_pending_candidates_and_records_mode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "green")
+            run = {
+                "run_id": "run-fast",
+                "prompt": "find highlights",
+                "provider": "agent-storyboard",
+                "quality_mode": "fast",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 1.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.0, "end": 1.0, "status": "pending"}
+                ],
+            }
+
+            manifest = export_run(run, root / "export", include_pending=True, mode="fast")
+
+            self.assertEqual(manifest["mode"], "fast")
+            self.assertEqual(len(manifest["segments"]), 1)
+            report = json.loads((root / "export" / "run-report.json").read_text())
+            self.assertEqual(report["mode"], "fast")
+
+    def test_pending_flag_preserves_legacy_fast_export_without_explicit_mode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "purple")
+            run = {
+                "run_id": "run-legacy-fast",
+                "prompt": "find highlights",
+                "provider": "agent",
+                "quality_mode": "precise",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 1.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.0, "end": 1.0, "status": "pending"}
+                ],
+            }
+
+            manifest = export_run(run, root / "export", include_pending=True)
+
+            self.assertEqual(manifest["mode"], "fast")
+
+    def test_precise_mode_rejects_pending_candidates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "yellow")
+            run = {
+                "run_id": "run-precise",
+                "prompt": "precise highlights",
+                "provider": "agent-storyboard",
+                "quality_mode": "precise",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 1.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.0, "end": 1.0, "status": "pending"}
+                ],
+            }
+
+            with self.assertRaisesRegex(ValueError, "Precise mode requires accepted candidates"):
+                export_run(run, root / "export", include_pending=True, mode="precise")
+
 
 if __name__ == "__main__":
     unittest.main()

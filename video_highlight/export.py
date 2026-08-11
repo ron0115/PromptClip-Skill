@@ -21,9 +21,24 @@ def export_run(
     limit: int | None = None,
     transcode: bool = True,
     workers: int = 2,
+    mode: str | None = None,
 ) -> dict[str, Any]:
     if workers <= 0:
         raise ValueError("Workers must be positive")
+    if mode is not None:
+        resolved_mode = mode
+    elif include_pending:
+        resolved_mode = "fast"
+    else:
+        resolved_mode = run.get("mode") or run.get("quality_mode") or "precise"
+    if resolved_mode not in {"fast", "precise"}:
+        raise ValueError("Mode must be fast or precise")
+    if resolved_mode == "precise" and include_pending:
+        raise ValueError("Precise mode requires accepted candidates")
+    if resolved_mode == "fast" and not include_pending:
+        raise ValueError("Fast mode requires include_pending candidates")
+    run["mode"] = resolved_mode
+    run["quality_mode"] = resolved_mode
     output_dir.mkdir(parents=True, exist_ok=True)
     assets = _asset_map(run)
     asset_order = {asset["asset_id"]: index for index, asset in enumerate(run["assets"])}
@@ -85,6 +100,7 @@ def export_run(
         "run_id": run["run_id"],
         "prompt": run.get("prompt"),
         "provider": run.get("provider"),
+        "mode": resolved_mode,
         "segments": exported,
         "merged_path": str(merged_path.resolve()) if merged_path else None,
     }
