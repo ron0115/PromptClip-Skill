@@ -13,7 +13,7 @@ Select one mode at task startup. The default is `fast`. Use `precise` only when 
 
 | Mode | AI passes | Export source | Use when |
 | --- | --- | --- | --- |
-| `fast` | storyboard only | pending storyboard candidates | Default highlight extraction where throughput matters |
+| `fast` | storyboard only | storyboard candidates | Default highlight extraction where throughput matters |
 | `precise` | storyboard + refinement | accepted candidates | The Prompt explicitly requires exact boundaries or frame-level compliance |
 
 `fast` is an approximate result, not a semantic final decision. It exports the padded, merged time ranges implied by kept storyboard cells. Report that limitation and do not claim that every exported frame satisfies the Prompt. Never silently upgrade or downgrade a user-explicit mode.
@@ -142,7 +142,12 @@ python3 -m video_highlight export \
 - Dispatch independent storyboard and refinement batches through a bounded queue. Keep concurrency bounded by the observed model gateway capacity; unbounded fan-out can cause throttling and make the run slower, while merging multiple batches into one child creates oversized visual contexts.
 - Use compact metadata, deduplicate repeated refinement frames, and keep Agent batches bounded. Do not wait indefinitely for a child.
 - Merge adjacent candidates, add bounded padding, clamp to source duration, and let local code assign final timecodes.
-- Export one primary `highlight-reel.mp4` even when candidates come from multiple source files. Its duration is the sum of accepted segments, with no fixed 30-second cap. Keep individual segment MP4s as supporting artifacts and report segment counts by source asset.
+- Export one primary `highlight-reel.mp4` even when candidates come from multiple source files. Its duration is the sum of selected segments, with no fixed 30-second cap. Do not create individual segment MP4s as a required intermediate artifact.
+- Keep export independent from `fast`/`precise`: those modes control AI analysis depth and candidate eligibility only. The export stage always uses the same Smart Export decision tree.
+- Prefer `stream_copy` when every source stream has compatible parameters and every start/end boundary is keyframe-safe. This preserves the source video/audio streams and avoids decoding or re-encoding.
+- Use `single_transcode` when source parameters are compatible but a selected boundary is not keyframe-safe. Decode and encode the complete selected timeline in one FFmpeg process; do not transcode each segment separately.
+- Use `compatibility_transcode` when source parameters differ or the normal concat path fails. Normalize to a broadly playable H.264/AAC MP4, retaining the first source's dimensions as the output canvas and adding silence for source ranges without audio when needed.
+- Record `export_strategy`, `source_preserved`, and `reencoded` in `segments.json`. A runtime fallback must record the strategy actually used, not the initially predicted strategy.
 - If any batch fails, report `partial`, list failed batch IDs, and never claim the whole folder was analyzed.
 - Never require `HIGHLIGHT_API_KEY` or `HIGHLIGHT_MODEL` for the normal Skill path. The visual child Agent is the analysis engine.
 - Do not use the deterministic `mock` provider for user-facing results.
@@ -158,4 +163,4 @@ Report:
 - `mode`: `fast` or `precise`;
 - Prompt, coverage count, candidate count, accepted count, and failed batch IDs;
 - next action: review URL or missing batch/configuration;
-- artifacts: run directory, decisions, primary `highlight-reel.mp4`, individual clips, `segments.json`, and `timeline.fcpxml`.
+- artifacts: run directory, decisions, primary `highlight-reel.mp4`, `segments.json`, `run-report.json`, and `timeline.fcpxml`.

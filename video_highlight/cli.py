@@ -72,7 +72,11 @@ def build_parser() -> argparse.ArgumentParser:
     export.add_argument("--output", type=Path, required=True)
     export.add_argument("--include-pending", action="store_true")
     export.add_argument("--limit", type=int)
-    export.add_argument("--no-transcode", action="store_true")
+    export.add_argument(
+        "--no-transcode",
+        action="store_true",
+        help="Legacy compatibility option; default is automatic Smart Export with fallback",
+    )
     export.add_argument("--workers", type=int, default=2)
     export.add_argument("--mode", choices=["fast", "precise"])
 
@@ -148,7 +152,7 @@ def main(argv: list[str] | None = None) -> int:
             args.output.resolve(),
             args.include_pending,
             args.limit,
-            not args.no_transcode,
+            False if args.no_transcode else None,
             args.workers,
             args.mode,
         )
