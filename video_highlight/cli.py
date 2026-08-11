@@ -60,6 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
     apply_storyboard.add_argument("--prompt", required=True)
     apply_storyboard.add_argument("--decisions", type=Path, required=True)
     apply_storyboard.add_argument("--merge-existing", action="store_true")
+    apply_storyboard.add_argument("--mode", choices=["auto", "fast", "precise"], default="auto")
 
     review = commands.add_parser("review", help="Start the local review page")
     _add_common_run_argument(review)
@@ -73,6 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
     export.add_argument("--limit", type=int)
     export.add_argument("--no-transcode", action="store_true")
     export.add_argument("--workers", type=int, default=2)
+    export.add_argument("--mode", choices=["fast", "precise"])
 
     process = commands.add_parser("process", help="Run scan and analysis in one command")
     process.add_argument("--input", type=Path, required=True)
@@ -132,6 +134,7 @@ def main(argv: list[str] | None = None) -> int:
             args.prompt,
             args.decisions.resolve(),
             merge_existing=args.merge_existing,
+            mode=args.mode,
         )
         print(json.dumps({"run": str(args.run.resolve()), "candidates": len(run["candidates"])}, ensure_ascii=False))
         return 0
@@ -147,6 +150,7 @@ def main(argv: list[str] | None = None) -> int:
             args.limit,
             not args.no_transcode,
             args.workers,
+            args.mode,
         )
         print(json.dumps({"output": str(args.output.resolve()), "segments": len(manifest["segments"]), "merged": manifest["merged_path"]}, ensure_ascii=False))
         return 0
@@ -164,7 +168,11 @@ def main(argv: list[str] | None = None) -> int:
                 args.limit,
                 workers=args.export_workers,
             )
-            result.update({"export": str(args.export_output.resolve()), "segments": len(manifest["segments"])})
+            result.update({
+                "export": str(args.export_output.resolve()),
+                "segments": len(manifest["segments"]),
+                "mode": manifest["mode"],
+            })
         print(json.dumps(result, ensure_ascii=False))
         return 0
     raise AssertionError(f"Unhandled command: {args.command}")

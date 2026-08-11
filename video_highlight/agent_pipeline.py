@@ -5,6 +5,7 @@ from typing import Any
 
 from .analysis import _persist_decisions
 from .models import Asset, Candidate, Sample, Window, validate_model_decisions
+from .modes import resolve_mode
 from .segments import build_candidate_windows, merge_candidates
 from .storage import load_json, load_run, save_run
 from .storyboards import build_storyboard_batches
@@ -73,6 +74,7 @@ def apply_storyboard_decisions(
     prompt: str,
     decisions_path: Path,
     merge_existing: bool = False,
+    mode: str | None = None,
 ) -> dict[str, Any]:
     raw = load_json(decisions_path)
     if isinstance(raw, dict):
@@ -168,6 +170,8 @@ def apply_storyboard_decisions(
     for index, candidate in enumerate(sorted(candidates, key=lambda item: (item.asset_id, item.start))):
         candidate.candidate_id = f"candidate-{index:06d}"
     run["prompt"] = prompt.strip()
+    run["mode"] = resolve_mode(prompt, mode)
+    run["quality_mode"] = run["mode"]
     run["provider"] = "agent-storyboard"
     run["model"] = "codex-subagent"
     run["analysis_mode"] = "detail-storyboard" if "detail" in specs_path.name else "storyboard"

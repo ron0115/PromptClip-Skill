@@ -149,6 +149,7 @@ class AgentPipelineTests(unittest.TestCase):
             result = apply_storyboard_decisions(run_dir, "keep visible events", decisions_path)
 
             self.assertEqual(result["analysis_mode"], "storyboard")
+            self.assertEqual(result["quality_mode"], "fast")
             self.assertEqual(len(result["candidates"]), 1)
             self.assertEqual(result["candidates"][0]["start"], 0.5)
 
@@ -184,9 +185,15 @@ class AgentPipelineTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            result = apply_storyboard_decisions(run_dir, "keep visible faces", decisions_path)
+            result = apply_storyboard_decisions(
+                run_dir,
+                "keep visible faces",
+                decisions_path,
+                mode="precise",
+            )
 
             self.assertEqual(result["analysis_mode"], "detail-storyboard")
+            self.assertEqual(result["quality_mode"], "precise")
             self.assertEqual(len(result["candidates"]), 1)
 
     def test_can_merge_storyboard_rescue_candidates_with_existing_candidates(self):

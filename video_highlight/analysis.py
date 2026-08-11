@@ -80,6 +80,8 @@ def _persist_decisions(
     run["prompt"] = prompt.strip()
     run["provider"] = provider_name
     run["model"] = model_name
+    run["mode"] = "precise"
+    run["quality_mode"] = run["mode"]
     run["analysis_mode"] = "frames"
     run["analysis_window_count"] = len(windows)
     run["candidates"] = candidates
