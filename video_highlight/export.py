@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import subprocess
 from pathlib import Path
+from functools import lru_cache
 from typing import Any
 from xml.etree.ElementTree import Element, SubElement, tostring
 
@@ -13,6 +16,10 @@ _STRATEGY_NONE = "none"
 _STRATEGY_STREAM_COPY = "stream_copy"
 _STRATEGY_SINGLE_TRANSCODE = "single_transcode"
 _STRATEGY_COMPATIBILITY_TRANSCODE = "compatibility_transcode"
+_PROFILE_PLATFORM = "platform"
+_PROFILE_SOURCE = "source"
+_ENCODER_H264_VIDEOTOOLBOX = "h264_videotoolbox"
+_ENCODER_LIBX264 = "libx264"
 _PROBE_FIELDS = (
     "codec_name",
     "codec_tag_string",
@@ -37,6 +44,14 @@ _PROBE_FIELDS = (
 )
 
 
+def default_export_dir(run: dict[str, Any]) -> Path:
+    source_dirs = [Path(asset["path"]).resolve().parent for asset in run.get("assets", [])]
+    if not source_dirs:
+        raise ValueError("Cannot infer export directory for a run without assets")
+    source_root = Path(os.path.commonpath([str(path) for path in source_dirs]))
+    return source_root / "PromptClip-Highlights" / str(run["run_id"])
+
+
 def _asset_map(run: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {asset["asset_id"]: asset for asset in run["assets"]}
 
@@ -49,6 +64,7 @@ def export_run(
     transcode: bool | None = None,
     workers: int = 2,
     mode: str | None = None,
+    export_profile: str = _PROFILE_SOURCE,
 ) -> dict[str, Any]:
     if workers <= 0:
         raise ValueError("Workers must be positive")
@@ -64,6 +80,8 @@ def export_run(
         raise ValueError("Precise mode requires accepted candidates")
     if resolved_mode == "fast" and not include_pending:
         raise ValueError("Fast mode requires include_pending candidates")
+    if export_profile not in {_PROFILE_PLATFORM, _PROFILE_SOURCE}:
+        raise ValueError("Export profile must be platform or source")
     run["mode"] = resolved_mode
     run["quality_mode"] = resolved_mode
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -80,14 +98,30 @@ def export_run(
 
     exported = [_segment_record(candidate, assets[candidate["asset_id"]]) for candidate in candidates]
     probes = _probe_sources(exported)
+    audio_settings = _audio_settings(probes, exported)
+    video_encoder = _choose_video_encoder(export_profile)
+    if export_profile == _PROFILE_PLATFORM:
+        transcode = True
+    if (
+        export_profile == _PROFILE_SOURCE
+        and resolved_mode == "fast"
+        and transcode is not True
+        and _sources_are_compatible(exported, probes)
+    ):
+        exported = _snap_segments_to_keyframes(exported, probes)
     strategy = _select_export_strategy(exported, probes, transcode)
-    merged_path, strategy = _export_timeline(exported, assets, probes, output_dir, strategy)
+    merged_path, strategy = _export_timeline(exported, assets, probes, audio_settings, video_encoder, output_dir, strategy)
     manifest = {
         "schema_version": 1,
         "run_id": run["run_id"],
         "prompt": run.get("prompt"),
         "provider": run.get("provider"),
         "mode": resolved_mode,
+        "export_profile": export_profile,
+        "video_encoder": video_encoder,
+        "target_audio_bitrate": audio_settings.get("bit_rate"),
+        "target_audio_sample_rate": audio_settings.get("sample_rate"),
+        "target_audio_channels": audio_settings.get("channels"),
         "export_strategy": strategy,
         "source_preserved": strategy == _STRATEGY_STREAM_COPY,
         "reencoded": strategy in {_STRATEGY_SINGLE_TRANSCODE, _STRATEGY_COMPATIBILITY_TRANSCODE},
@@ -145,6 +179,7 @@ def _probe_sources(segments: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         probes[path] = {
             "video": _stream_signature(video),
             "audio": _stream_signature(audio) if audio else None,
+            "audio_raw": audio or {},
             "duration": float(stream_data.get("format", {}).get("duration") or video.get("duration") or 0.0),
             "keyframes": _probe_keyframes(path, f"v:{video_ordinal}"),
             "video_selector": f"v:{video_ordinal}",
@@ -152,6 +187,68 @@ def _probe_sources(segments: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             "stream_layout": (len(video_streams), len(audio_streams), video_ordinal, 0 if audio else None),
         }
     return probes
+
+
+def _audio_settings(probes: dict[str, dict[str, Any]], segments: list[dict[str, Any]]) -> dict[str, Any]:
+    if not segments:
+        return {"bit_rate": 160000, "sample_rate": 48000, "channels": 2, "channel_layout": "stereo"}
+    first_probe = probes[segments[0]["source_path"]]
+    audio = first_probe.get("audio_raw") or {}
+    bit_rate = audio.get("bit_rate")
+    sample_rate = audio.get("sample_rate")
+    channels = audio.get("channels")
+    channel_layout = audio.get("channel_layout")
+    return {
+        "bit_rate": int(float(bit_rate)) if bit_rate not in (None, "") else 160000,
+        "sample_rate": int(sample_rate) if sample_rate not in (None, "") else 48000,
+        "channels": int(channels) if channels not in (None, "") else 2,
+        "channel_layout": str(channel_layout) if channel_layout not in (None, "") else "stereo",
+    }
+
+
+def _choose_video_encoder(export_profile: str) -> str:
+    if export_profile == _PROFILE_PLATFORM and shutil.which("ffmpeg"):
+        try:
+            result = subprocess.run(
+                ["ffmpeg", "-hide_banner", "-encoders"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            if _ENCODER_H264_VIDEOTOOLBOX in result.stdout:
+                return _ENCODER_H264_VIDEOTOOLBOX
+        except subprocess.CalledProcessError:
+            pass
+    return _ENCODER_LIBX264
+
+
+@lru_cache(maxsize=1)
+def _supports_videotoolbox_hwaccel() -> bool:
+    if not shutil.which("ffmpeg"):
+        return False
+    try:
+        result = subprocess.run(
+            ["ffmpeg", "-hide_banner", "-hwaccels"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        return False
+    return "videotoolbox" in result.stdout
+
+
+def _sources_are_compatible(
+    segments: list[dict[str, Any]],
+    probes: dict[str, dict[str, Any]],
+) -> bool:
+    paths = {segment["source_path"] for segment in segments}
+    return len(
+        {
+            (probes[path]["video"], probes[path]["audio"], probes[path]["stream_layout"])
+            for path in paths
+        }
+    ) == 1
 
 
 def _select_primary_video(streams: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, int]:
@@ -229,13 +326,7 @@ def _select_export_strategy(
 ) -> str:
     if not segments:
         return _STRATEGY_NONE
-    paths = {segment["source_path"] for segment in segments}
-    compatible = len(
-        {
-            (probes[path]["video"], probes[path]["audio"], probes[path]["stream_layout"])
-            for path in paths
-        }
-    ) == 1
+    compatible = _sources_are_compatible(segments, probes)
     if transcode is True:
         return _STRATEGY_SINGLE_TRANSCODE if compatible else _STRATEGY_COMPATIBILITY_TRANSCODE
     if not compatible:
@@ -254,6 +345,88 @@ def _segment_is_keyframe_safe(segment: dict[str, Any], probe: dict[str, Any]) ->
     start_safe = abs(start) <= tolerance or any(abs(start - point) <= tolerance for point in keyframes)
     end_safe = abs(end - duration) <= tolerance or any(abs(end - point) <= tolerance for point in keyframes)
     return start_safe and end_safe
+
+
+def _snap_segments_to_keyframes(
+    segments: list[dict[str, Any]],
+    probes: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    snapped = [_snap_segment_to_keyframes(segment, probes[segment["source_path"]]) for segment in segments]
+    return _merge_overlapping_export_segments(snapped)
+
+
+def _snap_segment_to_keyframes(segment: dict[str, Any], probe: dict[str, Any]) -> dict[str, Any]:
+    keyframes = probe["keyframes"]
+    if not keyframes:
+        return segment
+    duration = float(probe["duration"])
+    requested_start = float(segment["start"])
+    requested_end = float(segment["end"])
+    start = _previous_keyframe(requested_start, keyframes)
+    end = _next_keyframe(requested_end, keyframes, duration)
+    if end <= start:
+        end = _next_keyframe(start + 0.001, keyframes, duration)
+    snapped = dict(segment)
+    snapped["requested_start"] = round(requested_start, 3)
+    snapped["requested_end"] = round(requested_end, 3)
+    snapped["start"] = round(max(0.0, start), 3)
+    snapped["end"] = round(min(duration, end), 3)
+    snapped["keyframe_snapped"] = (
+        abs(snapped["start"] - requested_start) > 0.005
+        or abs(snapped["end"] - requested_end) > 0.005
+    )
+    return snapped
+
+
+def _previous_keyframe(timestamp: float, keyframes: list[float]) -> float:
+    previous = keyframes[0]
+    for keyframe in keyframes:
+        if keyframe > timestamp:
+            break
+        previous = keyframe
+    return previous
+
+
+def _next_keyframe(timestamp: float, keyframes: list[float], duration: float) -> float:
+    for keyframe in keyframes:
+        if keyframe >= timestamp:
+            return keyframe
+    return duration
+
+
+def _merge_overlapping_export_segments(segments: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not segments:
+        return []
+    merged: list[dict[str, Any]] = []
+    for segment in segments:
+        if (
+            merged
+            and merged[-1]["source_path"] == segment["source_path"]
+            and float(segment["start"]) <= float(merged[-1]["end"]) + 0.001
+        ):
+            current = merged[-1]
+            current["end"] = round(max(float(current["end"]), float(segment["end"])), 3)
+            current["requested_start"] = round(
+                min(float(current.get("requested_start", current["start"])), float(segment.get("requested_start", segment["start"]))),
+                3,
+            )
+            current["requested_end"] = round(
+                max(float(current.get("requested_end", current["end"])), float(segment.get("requested_end", segment["end"]))),
+                3,
+            )
+            current["keyframe_snapped"] = bool(current.get("keyframe_snapped") or segment.get("keyframe_snapped"))
+            current["source_window_ids"] = list(
+                dict.fromkeys(current.get("source_window_ids", []) + segment.get("source_window_ids", []))
+            )
+            current["tags"] = list(dict.fromkeys(current.get("tags", []) + segment.get("tags", [])))
+            continue
+        merged.append(dict(segment))
+    for index, segment in enumerate(merged):
+        if index < len(segments):
+            segment["candidate_id"] = segments[index]["candidate_id"]
+        else:
+            segment["candidate_id"] = f"export-segment-{index:06d}"
+    return merged
 
 
 def _write_concat_list(segments: list[dict[str, Any]], output_dir: Path) -> Path:
@@ -279,12 +452,19 @@ def _concat_command(
     output: Path,
     transcode: bool,
     probe: dict[str, Any],
+    video_encoder: str,
+    audio_settings: dict[str, Any],
+    use_hwaccel: bool = False,
 ) -> list[str]:
     command = [
         "ffmpeg",
         "-hide_banner",
         "-loglevel",
         "error",
+    ]
+    if use_hwaccel and _supports_videotoolbox_hwaccel():
+        command.extend(["-hwaccel", "videotoolbox"])
+    command.extend([
         "-f",
         "concat",
         "-safe",
@@ -295,24 +475,53 @@ def _concat_command(
         f"0:{probe['video_selector']}",
         "-sn",
         "-dn",
-    ]
+    ])
     if probe["audio_selector"]:
         command.extend(["-map", f"0:{probe['audio_selector']}"])
     if transcode:
-        command.extend(
-            [
-                "-c:v",
-                "libx264",
-                "-preset",
-                "veryfast",
-                "-crf",
-                "20",
-                "-c:a",
-                "aac",
-                "-b:a",
-                "160k",
-            ]
-        )
+        if video_encoder == _ENCODER_H264_VIDEOTOOLBOX:
+            command.extend(
+                [
+                    "-c:v",
+                    _ENCODER_H264_VIDEOTOOLBOX,
+                    "-pix_fmt",
+                    "yuv420p",
+                    "-q:v",
+                    "60",
+                    "-realtime",
+                    "true",
+                    "-prio_speed",
+                    "true",
+                    "-frames_before",
+                    "true",
+                    "-frames_after",
+                    "true",
+                ]
+            )
+        else:
+            command.extend(
+                [
+                    "-c:v",
+                    _ENCODER_LIBX264,
+                    "-preset",
+                    "veryfast",
+                    "-crf",
+                    "20",
+                    "-c:a",
+                    "aac",
+                ]
+            )
+        if probe["audio_selector"]:
+            command.extend(
+                [
+                    "-b:a",
+                    str(int(audio_settings.get("bit_rate", 160000))),
+                    "-ar",
+                    str(int(audio_settings.get("sample_rate", 48000))),
+                    "-ac",
+                    str(int(audio_settings.get("channels", 2))),
+                ]
+            )
     else:
         command.extend(["-c", "copy"])
     command.extend(["-movflags", "+faststart", "-y", str(output)])
@@ -323,18 +532,28 @@ def _export_timeline(
     segments: list[dict[str, Any]],
     assets: dict[str, dict[str, Any]],
     probes: dict[str, dict[str, Any]],
+    audio_settings: dict[str, Any],
+    video_encoder: str,
     output_dir: Path,
     strategy: str,
 ) -> tuple[Path | None, str]:
     if not segments:
         return None, _STRATEGY_NONE
     output = output_dir / "highlight-reel.mp4"
-    list_path = _write_concat_list(segments, output_dir)
     first_probe = probes[segments[0]["source_path"]]
+    hwaccel_candidates = (True, False) if _supports_videotoolbox_hwaccel() else (False,)
     if strategy == _STRATEGY_STREAM_COPY:
+        list_path = _write_concat_list(segments, output_dir)
         try:
             subprocess.run(
-                _concat_command(list_path, output, transcode=False, probe=first_probe),
+                _concat_command(
+                    list_path,
+                    output,
+                    transcode=False,
+                    probe=first_probe,
+                    video_encoder=video_encoder,
+                    audio_settings=audio_settings,
+                ),
                 check=True,
             )
             return output, _STRATEGY_STREAM_COPY
@@ -342,29 +561,135 @@ def _export_timeline(
             output.unlink(missing_ok=True)
             strategy = _STRATEGY_SINGLE_TRANSCODE
     if strategy == _STRATEGY_SINGLE_TRANSCODE:
-        try:
-            subprocess.run(
-                _concat_command(list_path, output, transcode=True, probe=first_probe),
-                check=True,
-            )
-            return output, _STRATEGY_SINGLE_TRANSCODE
-        except subprocess.CalledProcessError:
-            output.unlink(missing_ok=True)
-            strategy = _STRATEGY_COMPATIBILITY_TRANSCODE
+        list_path = _write_concat_list(segments, output_dir)
+        for use_hwaccel in hwaccel_candidates:
+            try:
+                subprocess.run(
+                    _concat_command(
+                        list_path,
+                        output,
+                        transcode=True,
+                        probe=first_probe,
+                        video_encoder=video_encoder,
+                        audio_settings=audio_settings,
+                        use_hwaccel=use_hwaccel,
+                    ),
+                    check=True,
+                )
+                return output, _STRATEGY_SINGLE_TRANSCODE
+            except subprocess.CalledProcessError:
+                output.unlink(missing_ok=True)
+        strategy = _STRATEGY_COMPATIBILITY_TRANSCODE
     if strategy == _STRATEGY_COMPATIBILITY_TRANSCODE:
-        subprocess.run(
-            _compatibility_command(segments, assets, probes, output),
-            check=True,
-        )
-        return output, _STRATEGY_COMPATIBILITY_TRANSCODE
+        for use_hwaccel in hwaccel_candidates:
+            try:
+                subprocess.run(
+                    _compatibility_command(
+                        segments, assets, probes, audio_settings, video_encoder, output, use_hwaccel=use_hwaccel
+                    ),
+                    check=True,
+                )
+                return output, _STRATEGY_COMPATIBILITY_TRANSCODE
+            except subprocess.CalledProcessError:
+                output.unlink(missing_ok=True)
     raise ValueError(f"Unsupported export strategy: {strategy}")
+
+
+def _single_transcode_command(
+    segments: list[dict[str, Any]],
+    probes: dict[str, dict[str, Any]],
+    audio_settings: dict[str, Any],
+    video_encoder: str,
+    output: Path,
+) -> list[str]:
+    source_paths = list(dict.fromkeys(segment["source_path"] for segment in segments))
+    input_indexes = {path: index for index, path in enumerate(source_paths)}
+    filters: list[str] = []
+    video_inputs: dict[tuple[str, int], str] = {}
+    audio_inputs: dict[tuple[str, int], str] = {}
+    has_audio = any(probes[path]["audio"] is not None for path in source_paths)
+    uses_by_path: dict[str, list[int]] = {
+        path: [index for index, segment in enumerate(segments) if segment["source_path"] == path]
+        for path in source_paths
+    }
+    for path in source_paths:
+        source_index = input_indexes[path]
+        video_selector = probes[path]["video_selector"]
+        audio_selector = probes[path]["audio_selector"]
+        uses = uses_by_path[path]
+        if len(uses) == 1:
+            video_inputs[(path, uses[0])] = f"[{source_index}:{video_selector}]"
+            if has_audio and audio_selector:
+                audio_inputs[(path, uses[0])] = f"[{source_index}:{audio_selector}]"
+            continue
+        video_branch_labels = [f"[single-source-v-{source_index}-{offset}]" for offset in range(len(uses))]
+        filters.append(f"[{source_index}:{video_selector}]split={len(uses)}{''.join(video_branch_labels)}")
+        for segment_index, label in zip(uses, video_branch_labels):
+            video_inputs[(path, segment_index)] = label
+        if has_audio and audio_selector:
+            audio_branch_labels = [f"[single-source-a-{source_index}-{offset}]" for offset in range(len(uses))]
+            filters.append(f"[{source_index}:{audio_selector}]asplit={len(uses)}{''.join(audio_branch_labels)}")
+            for segment_index, label in zip(uses, audio_branch_labels):
+                audio_inputs[(path, segment_index)] = label
+    concat_labels: list[str] = []
+    video_labels: list[str] = []
+    for index, segment in enumerate(segments):
+        source_path = segment["source_path"]
+        start = float(segment["start"])
+        end = float(segment["end"])
+        video_label = f"single-v{index}"
+        filters.append(
+            f"{video_inputs[(source_path, index)]}trim=start={start:.3f}:end={end:.3f},"
+            f"setpts=PTS-STARTPTS[{video_label}]"
+        )
+        video_labels.append(f"[{video_label}]")
+        if has_audio:
+            audio_label = f"single-a{index}"
+            filters.append(
+                f"{audio_inputs[(source_path, index)]}atrim=start={start:.3f}:end={end:.3f},"
+                f"asetpts=PTS-STARTPTS[{audio_label}]"
+            )
+            concat_labels.extend([f"[{video_label}]", f"[{audio_label}]"])
+        else:
+            concat_labels.append(f"[{video_label}]")
+    if has_audio:
+        filters.append(f"{''.join(concat_labels)}concat=n={len(segments)}:v=1:a=1[outv][outa]")
+    else:
+        filters.append(f"{''.join(video_labels)}concat=n={len(segments)}:v=1:a=0[outv]")
+
+    command = ["ffmpeg", "-hide_banner", "-loglevel", "error"]
+    for path in source_paths:
+        command.extend(["-i", path])
+    command.extend(["-filter_complex", ";".join(filters), "-map", "[outv]"])
+    if has_audio:
+        command.extend(["-map", "[outa]"])
+    if video_encoder == _ENCODER_H264_VIDEOTOOLBOX:
+        command.extend(["-c:v", _ENCODER_H264_VIDEOTOOLBOX, "-pix_fmt", "yuv420p", "-q:v", "60"])
+    else:
+        command.extend(["-c:v", _ENCODER_LIBX264, "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p"])
+    if has_audio:
+        command.extend([
+            "-c:a",
+            "aac",
+            "-b:a",
+            str(int(audio_settings.get("bit_rate", 160000))),
+            "-ar",
+            str(int(audio_settings.get("sample_rate", 48000))),
+            "-ac",
+            str(int(audio_settings.get("channels", 2))),
+        ])
+    command.extend(["-movflags", "+faststart", "-y", str(output)])
+    return command
 
 
 def _compatibility_command(
     segments: list[dict[str, Any]],
     assets: dict[str, dict[str, Any]],
     probes: dict[str, dict[str, Any]],
+    audio_settings: dict[str, Any],
+    video_encoder: str,
     output: Path,
+    use_hwaccel: bool = False,
 ) -> list[str]:
     source_paths = list(dict.fromkeys(segment["source_path"] for segment in segments))
     first_video = probes[source_paths[0]]["video"]
@@ -384,6 +709,7 @@ def _compatibility_command(
     }
     video_inputs: dict[tuple[str, int], str] = {}
     audio_inputs: dict[tuple[str, int], str] = {}
+    input_prefix = ["-hwaccel", "videotoolbox"] if use_hwaccel and _supports_videotoolbox_hwaccel() else []
     for path in source_paths:
         source_index = input_indexes[path]
         video_selector = probes[path]["video_selector"]
@@ -424,13 +750,13 @@ def _compatibility_command(
             if probes[source_path]["audio"] is not None:
                 filters.append(
                     f"{audio_inputs[(source_path, index)]}atrim=start={start:.3f}:end={end:.3f},"
-                    f"asetpts=PTS-STARTPTS,aresample=48000,"
-                    f"aformat=sample_fmts=fltp:channel_layouts=stereo[{audio_label}]"
+                    f"asetpts=PTS-STARTPTS,aresample={int(audio_settings.get('sample_rate', 48000))},"
+                    f"aformat=sample_fmts=fltp:channel_layouts={audio_settings.get('channel_layout', 'stereo')}[{audio_label}]"
                 )
             else:
                 filters.append(
-                    f"anullsrc=r=48000:cl=stereo,atrim=duration={duration:.3f},"
-                    f"asetpts=PTS-STARTPTS[{audio_label}]"
+                    f"anullsrc=r={int(audio_settings.get('sample_rate', 48000))}:cl={audio_settings.get('channel_layout', 'stereo')},"
+                    f"atrim=duration={duration:.3f},asetpts=PTS-STARTPTS[{audio_label}]"
                 )
             audio_labels.append(f"[{audio_label}]")
             concat_labels.extend([f"[{video_label}]", f"[{audio_label}]"])
@@ -444,6 +770,7 @@ def _compatibility_command(
 
     command = ["ffmpeg", "-hide_banner", "-loglevel", "error"]
     for path in source_paths:
+        command.extend(input_prefix)
         command.extend(["-i", path])
     command.extend(
         [
@@ -455,20 +782,21 @@ def _compatibility_command(
     )
     if has_audio:
         command.extend(["-map", "[outa]"])
-    command.extend(
-        [
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-crf",
-            "20",
-            "-pix_fmt",
-            "yuv420p",
-        ]
-    )
+    if video_encoder == _ENCODER_H264_VIDEOTOOLBOX:
+        command.extend(["-c:v", _ENCODER_H264_VIDEOTOOLBOX, "-pix_fmt", "yuv420p", "-q:v", "60"])
+    else:
+        command.extend(["-c:v", _ENCODER_LIBX264, "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p"])
     if has_audio:
-        command.extend(["-c:a", "aac", "-b:a", "160k"])
+        command.extend([
+            "-c:a",
+            "aac",
+            "-b:a",
+            str(int(audio_settings.get("bit_rate", 160000))),
+            "-ar",
+            str(int(audio_settings.get("sample_rate", 48000))),
+            "-ac",
+            str(int(audio_settings.get("channels", 2))),
+        ])
     command.extend(["-movflags", "+faststart", "-y", str(output)])
     return command
 

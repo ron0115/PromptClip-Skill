@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .analysis import analyze_run
 from .agent_pipeline import apply_agent_decisions, apply_storyboard_decisions, build_batches
-from .export import export_run
+from .export import default_export_dir, export_run
 from .indexing import create_run
 from .prefilter import apply_face_prefilter
 from .review import serve_review
@@ -69,16 +69,26 @@ def build_parser() -> argparse.ArgumentParser:
 
     export = commands.add_parser("export", help="Export confirmed candidates")
     _add_common_run_argument(export)
-    export.add_argument("--output", type=Path, required=True)
+    export.add_argument(
+        "--output",
+        type=Path,
+        help="Export directory. Defaults to the input media folder under PromptClip-Highlights/<run-id>.",
+    )
     export.add_argument("--include-pending", action="store_true")
     export.add_argument("--limit", type=int)
     export.add_argument(
         "--no-transcode",
         action="store_true",
-        help="Legacy compatibility option; default is automatic Smart Export with fallback",
+        help="Legacy source-profile option; ignored by the default platform profile",
     )
     export.add_argument("--workers", type=int, default=2)
     export.add_argument("--mode", choices=["fast", "precise"])
+    export.add_argument(
+        "--profile",
+        choices=["platform", "source"],
+        default="platform",
+        help="platform creates upload-friendly H.264/AAC MP4; source preserves compatible source streams when possible.",
+    )
 
     process = commands.add_parser("process", help="Run scan and analysis in one command")
     process.add_argument("--input", type=Path, required=True)
@@ -91,6 +101,12 @@ def build_parser() -> argparse.ArgumentParser:
     process.add_argument("--hwaccel", choices=["auto", "none", "videotoolbox"], default="auto")
     process.add_argument("--max-windows", type=int)
     process.add_argument("--export-output", type=Path)
+    process.add_argument(
+        "--export-profile",
+        choices=["platform", "source"],
+        default="platform",
+        help="Export profile for the compatibility entry point.",
+    )
     process.add_argument("--include-pending", action="store_true")
     process.add_argument("--limit", type=int)
     process.add_argument("--export-workers", type=int, default=2)
@@ -147,16 +163,18 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "export":
         run = load_run(args.run.resolve())
+        output_dir = args.output.resolve() if args.output else default_export_dir(run)
         manifest = export_run(
             run,
-            args.output.resolve(),
+            output_dir,
             args.include_pending,
             args.limit,
             False if args.no_transcode else None,
             args.workers,
             args.mode,
+            args.profile,
         )
-        print(json.dumps({"output": str(args.output.resolve()), "segments": len(manifest["segments"]), "merged": manifest["merged_path"]}, ensure_ascii=False))
+        print(json.dumps({"output": str(output_dir), "segments": len(manifest["segments"]), "merged": manifest["merged_path"]}, ensure_ascii=False))
         return 0
     if args.command == "process":
         run_dir = create_run(
@@ -171,6 +189,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.include_pending,
                 args.limit,
                 workers=args.export_workers,
+                export_profile=args.export_profile,
             )
             result.update({
                 "export": str(args.export_output.resolve()),

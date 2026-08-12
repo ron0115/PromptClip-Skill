@@ -12,15 +12,17 @@ Use `/video-highlight-extractor` in Codex and provide a local folder plus a natu
 
 The default mode is `fast`: it stops after storyboard analysis and exports padded storyboard candidates with `--include-pending`. Use `precise` when the Prompt explicitly requires exact boundaries or frame-level compliance; it adds the refinement pass and exports accepted candidates only. Both modes share the same scan, storyboard, Agent result contract, and export implementation. The mode changes AI analysis depth, not output encoding or merge quality.
 
+When a user supplies a source folder and does not choose a separate export location, user-facing results are written next to the source material under `PromptClip-Highlights/<run-id>/`. The internal scan cache can remain under `work/video-highlight/runs`, but the final `highlight-reel.mp4`, `segments.json`, `run-report.json`, and `timeline.fcpxml` should be easy to find from the original media folder.
+
 ## Smart Export
 
-The export stage automatically chooses the fastest compatible path for the selected timeline:
+The export stage automatically chooses the best path for the selected timeline:
 
 - `stream_copy`: source streams have compatible parameters and every cut is keyframe-safe. The final MP4 preserves the source video/audio streams and is created with no intermediate clip files.
-- `single_transcode`: source parameters are compatible but a cut needs frame-accurate decoding. All selected ranges are decoded and encoded once into the final MP4.
-- `compatibility_transcode`: source parameters differ or the normal concat path fails. Inputs are normalized to a broadly playable H.264/AAC MP4, using the first source's dimensions as the target canvas.
+- `single_transcode`: source parameters are compatible but a cut needs frame-accurate decoding. This keeps source dimensions and audio settings when possible while re-encoding the selected timeline once into a platform-friendly MP4.
+- `compatibility_transcode`: source parameters differ or the normal concat path fails. Inputs are normalized to a broadly playable H.264/AAC MP4, keeping the first source's dimensions and using source audio settings when available.
 
-`segments.json` records `export_strategy`, `source_preserved`, and `reencoded`. `highlight-reel.mp4` is the primary media artifact; `timeline.fcpxml` and the JSON manifest retain the source time ranges for editing applications. Fast and precise modes use this same export decision tree.
+`segments.json` records `export_strategy`, `export_profile`, `target_audio_bitrate`, `target_audio_sample_rate`, `target_audio_channels`, `source_preserved`, and `reencoded`. `highlight-reel.mp4` is the primary media artifact; `timeline.fcpxml` and the JSON manifest retain the source time ranges for editing applications. Fast and precise modes use this same export decision tree.
 
 ## Quick start
 
@@ -30,7 +32,8 @@ python3 -m video_highlight process \
   --output work/runs \
   --prompt "保留宝宝表情清晰、动作完整、和家人互动的片段" \
   --provider mock \
-  --export-output work/exports \
+  --export-output "/Users/ron0115/Documents/手机视频素材/PromptClip-Highlights/run-demo" \
+  --export-profile platform \
   --include-pending \
   --limit 3
 ```

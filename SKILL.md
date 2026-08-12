@@ -31,6 +31,13 @@ Prompt-specific conditions remain AI conditions unless a local detector proves t
 ## Workflow
 
 1. Extract `input_dir`, `prompt`, output preferences, and mode from the request. Set `MODE=fast` when no mode is specified. Set `MODE=precise` only for an explicit precision requirement or an explicit user choice.
+   If the user provides an input file or folder but does not explicitly provide an export directory, set:
+
+```bash
+EXPORT_DIR="$INPUT_DIR/PromptClip-Highlights/$RUN_ID"
+```
+
+   For a single input file, use the parent folder as `INPUT_DIR` for this default. The scan/run cache may stay under `work/video-highlight/runs`, but the user-facing export artifacts must be written to this export directory next to the source material. Do not leave the only copy of `highlight-reel.mp4`, `segments.json`, `run-report.json`, or `timeline.fcpxml` inside the run cache when the user did not ask for a separate output location.
 2. Reuse a prior run when its asset fingerprints match. Otherwise scan and create the low-resolution frame index:
 
 ```bash
@@ -104,7 +111,7 @@ For `fast`, stop here and export those candidates directly. Do not create refine
 ```bash
 python3 -m video_highlight export \
   --run "$RUN_DIR" \
-  --output "$RUN_DIR/export" \
+  --output "$EXPORT_DIR" \
   --mode fast \
   --include-pending
 ```
@@ -129,7 +136,7 @@ Before export, compare the set of supplied refinement `window_id`s with the retu
 python3 -m video_highlight review --run "$RUN_DIR"
 python3 -m video_highlight export \
   --run "$RUN_DIR" \
-  --output "$RUN_DIR/export" \
+  --output "$EXPORT_DIR" \
   --mode precise
 ```
 
@@ -143,11 +150,13 @@ python3 -m video_highlight export \
 - Use compact metadata, deduplicate repeated refinement frames, and keep Agent batches bounded. Do not wait indefinitely for a child.
 - Merge adjacent candidates, add bounded padding, clamp to source duration, and let local code assign final timecodes.
 - Export one primary `highlight-reel.mp4` even when candidates come from multiple source files. Its duration is the sum of selected segments, with no fixed 30-second cap. Do not create individual segment MP4s as a required intermediate artifact.
+- Default to the `platform` export profile for finished deliverables unless the user explicitly asks to preserve source streams. `platform` means upload-friendly `H.264/AAC/yuv420p` output while still trying to keep the source resolution, frame rate, sample rate, channels, and audio bitrate when possible.
+- Unless the user explicitly chooses a different export directory, place the final export folder under the input material folder at `PromptClip-Highlights/$RUN_ID`. Keep heavy reusable scan caches in the run directory, but make the source folder the discoverable home for user-facing deliverables.
 - Keep export independent from `fast`/`precise`: those modes control AI analysis depth and candidate eligibility only. The export stage always uses the same Smart Export decision tree.
 - Prefer `stream_copy` when every source stream has compatible parameters and every start/end boundary is keyframe-safe. This preserves the source video/audio streams and avoids decoding or re-encoding.
-- Use `single_transcode` when source parameters are compatible but a selected boundary is not keyframe-safe. Decode and encode the complete selected timeline in one FFmpeg process; do not transcode each segment separately.
-- Use `compatibility_transcode` when source parameters differ or the normal concat path fails. Normalize to a broadly playable H.264/AAC MP4, retaining the first source's dimensions as the output canvas and adding silence for source ranges without audio when needed.
-- Record `export_strategy`, `source_preserved`, and `reencoded` in `segments.json`. A runtime fallback must record the strategy actually used, not the initially predicted strategy.
+- Use `single_transcode` when source parameters are compatible but a selected boundary is not keyframe-safe. Decode and encode the complete selected timeline in one FFmpeg process, while keeping source dimensions and audio settings when possible; do not transcode each segment separately.
+- Use `compatibility_transcode` when source parameters differ or the normal concat path fails. Normalize to a broadly playable H.264/AAC MP4, retaining the first source's dimensions as the output canvas and reusing source audio settings when available.
+- Record `export_profile`, `target_audio_bitrate`, `target_audio_sample_rate`, `target_audio_channels`, `export_strategy`, `source_preserved`, and `reencoded` in `segments.json`. A runtime fallback must record the strategy actually used, not the initially predicted strategy.
 - If any batch fails, report `partial`, list failed batch IDs, and never claim the whole folder was analyzed.
 - Never require `HIGHLIGHT_API_KEY` or `HIGHLIGHT_MODEL` for the normal Skill path. The visual child Agent is the analysis engine.
 - Do not use the deterministic `mock` provider for user-facing results.

@@ -3,11 +3,6 @@ __pycache__/
 *.py[cod]
 .DS_Store
 
-# Keep only this project's runtime Skill in the repository.
-.agents/skills/*/
-!.agents/skills/video-highlight-extractor/
-!.agents/skills/video-highlight-extractor/SKILL.md
-
 # Local media and generated exports must stay outside Git.
 *.mp4
 *.mov

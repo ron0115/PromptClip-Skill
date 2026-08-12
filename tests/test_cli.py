@@ -31,6 +31,30 @@ class CliTests(unittest.TestCase):
         self.assertEqual(args.mode, "fast")
         self.assertTrue(args.include_pending)
 
+    def test_export_output_is_optional(self):
+        parser = build_parser()
+
+        args = parser.parse_args([
+            "export",
+            "--run", "run",
+            "--mode", "fast",
+            "--include-pending",
+        ])
+
+        self.assertIsNone(args.output)
+
+    def test_export_defaults_to_platform_profile(self):
+        parser = build_parser()
+
+        args = parser.parse_args([
+            "export",
+            "--run", "run",
+            "--mode", "fast",
+            "--include-pending",
+        ])
+
+        self.assertEqual(args.profile, "platform")
+
 
 if __name__ == "__main__":
     unittest.main()

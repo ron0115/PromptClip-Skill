@@ -4,10 +4,24 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from video_highlight.export import export_run
+from video_highlight.export import default_export_dir, export_run
 
 
 class ExportTests(unittest.TestCase):
+    def test_default_export_dir_uses_input_media_folder(self):
+        run = {
+            "run_id": "run-default-output",
+            "assets": [
+                {"path": "/tmp/source-material/a.mp4"},
+                {"path": "/tmp/source-material/b.mp4"},
+            ],
+        }
+
+        self.assertEqual(
+            default_export_dir(run),
+            Path("/tmp/source-material").resolve() / "PromptClip-Highlights" / "run-default-output",
+        )
+
     def make_source(
         self,
         path: Path,
@@ -16,6 +30,8 @@ class ExportTests(unittest.TestCase):
         duration: float = 1.0,
         gop: int = 10,
         with_audio: bool = True,
+        audio_bitrate: str | None = None,
+        audio_source: str = "silence",
     ) -> None:
         command = [
             "ffmpeg",
@@ -28,11 +44,16 @@ class ExportTests(unittest.TestCase):
             f"color=c={color}:s={size}:r=10:d={duration}",
         ]
         if with_audio:
+            audio_input = (
+                "anullsrc=channel_layout=stereo:sample_rate=48000"
+                if audio_source == "silence"
+                else "sine=frequency=1000:sample_rate=48000"
+            )
             command.extend([
                 "-f",
                 "lavfi",
                 "-i",
-                "anullsrc=channel_layout=stereo:sample_rate=48000",
+                audio_input,
                 "-shortest",
             ])
         command.extend([
@@ -43,6 +64,8 @@ class ExportTests(unittest.TestCase):
         ])
         if with_audio:
             command.extend(["-c:a", "aac"])
+            if audio_bitrate is not None:
+                command.extend(["-b:a", audio_bitrate])
         command.extend(["-y", str(path)])
         subprocess.run(command, check=True)
 
@@ -132,6 +155,94 @@ class ExportTests(unittest.TestCase):
                 ["highlight-reel.mp4"],
             )
 
+    def test_platform_profile_transcodes_to_upload_friendly_h264(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "red", duration=1.0)
+            run = {
+                "run_id": "run-platform",
+                "prompt": "keep highlights",
+                "provider": "agent",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 1.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.0, "end": 1.0, "status": "accepted"},
+                ],
+            }
+
+            manifest = export_run(run, root / "export", export_profile="platform")
+
+            self.assertEqual(manifest["export_profile"], "platform")
+            self.assertEqual(manifest["export_strategy"], "single_transcode")
+            self.assertFalse(manifest["source_preserved"])
+            probe = subprocess.run(
+                [
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-select_streams",
+                    "v:0",
+                    "-show_entries",
+                    "stream=codec_name,pix_fmt",
+                    "-of",
+                    "json",
+                    manifest["merged_path"],
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            video = json.loads(probe.stdout)["streams"][0]
+            self.assertEqual(video["codec_name"], "h264")
+            self.assertEqual(video["pix_fmt"], "yuv420p")
+
+    def test_platform_profile_prefers_hardware_encoder_when_available(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "red", duration=1.0)
+            run = {
+                "run_id": "run-platform-hw",
+                "prompt": "keep highlights",
+                "provider": "agent",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 1.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.0, "end": 1.0, "status": "accepted"},
+                ],
+            }
+
+            manifest = export_run(run, root / "export", export_profile="platform")
+
+            self.assertEqual(manifest["video_encoder"], "h264_videotoolbox")
+
+    def test_platform_profile_prefers_source_audio_bitrate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "red", duration=10.0, audio_bitrate="64k", audio_source="tone")
+            run = {
+                "run_id": "run-platform-audio",
+                "prompt": "keep highlights",
+                "provider": "agent",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 10.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.0, "end": 10.0, "status": "accepted"},
+                ],
+            }
+
+            manifest = export_run(run, root / "export", export_profile="platform")
+
+            self.assertGreaterEqual(manifest["target_audio_bitrate"], 60000)
+            self.assertLessEqual(manifest["target_audio_bitrate"], 65000)
+            self.assertEqual(manifest["target_audio_sample_rate"], 48000)
+            self.assertEqual(manifest["target_audio_channels"], 1)
+
     def test_unsafe_cut_uses_one_transcode_without_intermediate_clips(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -158,6 +269,99 @@ class ExportTests(unittest.TestCase):
                 [path.name for path in (root / "export").glob("*.mp4")],
                 ["highlight-reel.mp4"],
             )
+
+    def test_single_transcode_does_not_use_concat_inpoints_for_unsafe_cuts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "orange", duration=2.0, gop=10)
+            run = {
+                "run_id": "run-filter-transcode",
+                "prompt": "keep highlights",
+                "provider": "agent",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 2.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.3, "end": 0.8, "status": "accepted"}
+                ],
+            }
+
+            manifest = export_run(run, root / "export")
+
+            self.assertEqual(manifest["export_strategy"], "single_transcode")
+            self.assertTrue((root / "export" / "merge-list.txt").exists())
+            self.assertEqual(manifest["video_encoder"], "libx264")
+
+    def test_platform_profile_uses_hardware_accelerated_concat_transcode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "orange", duration=2.0, gop=10)
+            run = {
+                "run_id": "run-platform-concat",
+                "prompt": "keep highlights",
+                "provider": "agent",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 2.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.3, "end": 0.8, "status": "accepted"}
+                ],
+            }
+
+            manifest = export_run(run, root / "export", export_profile="platform")
+
+            self.assertEqual(manifest["export_strategy"], "single_transcode")
+            self.assertEqual(manifest["video_encoder"], "h264_videotoolbox")
+            probe = subprocess.run(
+                [
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-select_streams",
+                    "v:0",
+                    "-show_entries",
+                    "stream=codec_name,pix_fmt",
+                    "-of",
+                    "json",
+                    manifest["merged_path"],
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            video = json.loads(probe.stdout)["streams"][0]
+            self.assertEqual(video["codec_name"], "h264")
+            self.assertEqual(video["pix_fmt"], "yuv420p")
+
+    def test_fast_unsafe_cut_snaps_to_keyframes_for_stream_copy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "orange", duration=2.0, gop=10)
+            run = {
+                "run_id": "run-fast-snap",
+                "prompt": "keep highlights",
+                "provider": "agent-storyboard",
+                "mode": "fast",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 2.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.3, "end": 0.8, "status": "pending"}
+                ],
+            }
+
+            manifest = export_run(run, root / "export", include_pending=True, mode="fast")
+
+            self.assertEqual(manifest["export_strategy"], "stream_copy")
+            self.assertTrue(manifest["source_preserved"])
+            self.assertFalse(manifest["reencoded"])
+            self.assertEqual(manifest["segments"][0]["requested_start"], 0.3)
+            self.assertEqual(manifest["segments"][0]["requested_end"], 0.8)
+            self.assertEqual(manifest["segments"][0]["start"], 0.0)
+            self.assertAlmostEqual(manifest["segments"][0]["end"], 1.0, places=3)
 
     def test_near_keyframe_cut_is_not_treated_as_keyframe_safe(self):
         with tempfile.TemporaryDirectory() as directory:
