@@ -290,8 +290,47 @@ class ExportTests(unittest.TestCase):
             manifest = export_run(run, root / "export")
 
             self.assertEqual(manifest["export_strategy"], "single_transcode")
-            self.assertTrue((root / "export" / "merge-list.txt").exists())
             self.assertEqual(manifest["video_encoder"], "libx264")
+
+    def test_single_transcode_resets_output_timestamps_to_zero(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source(source, "orange", duration=3.0, gop=10)
+            run = {
+                "run_id": "run-reset-timestamps",
+                "prompt": "keep highlights",
+                "provider": "agent",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 3.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.3, "end": 1.2, "status": "accepted"}
+                ],
+            }
+
+            manifest = export_run(run, root / "export", export_profile="platform")
+
+            probe = subprocess.run(
+                [
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-show_entries",
+                    "format=start_time:stream=index,codec_type,start_time",
+                    "-of",
+                    "json",
+                    manifest["merged_path"],
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            data = json.loads(probe.stdout)
+            self.assertEqual(manifest["export_strategy"], "single_transcode")
+            self.assertEqual(data["format"]["start_time"], "0.000000")
+            self.assertEqual(data["streams"][0]["start_time"], "0.000000")
+            self.assertEqual(data["streams"][1]["start_time"], "0.000000")
 
     def test_platform_profile_uses_hardware_accelerated_concat_transcode(self):
         with tempfile.TemporaryDirectory() as directory:

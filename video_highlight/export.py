@@ -561,18 +561,15 @@ def _export_timeline(
             output.unlink(missing_ok=True)
             strategy = _STRATEGY_SINGLE_TRANSCODE
     if strategy == _STRATEGY_SINGLE_TRANSCODE:
-        list_path = _write_concat_list(segments, output_dir)
         for use_hwaccel in hwaccel_candidates:
             try:
                 subprocess.run(
-                    _concat_command(
-                        list_path,
+                    _single_transcode_command(
+                        segments,
+                        probes,
+                        audio_settings,
+                        video_encoder,
                         output,
-                        transcode=True,
-                        probe=first_probe,
-                        video_encoder=video_encoder,
-                        audio_settings=audio_settings,
-                        use_hwaccel=use_hwaccel,
                     ),
                     check=True,
                 )
