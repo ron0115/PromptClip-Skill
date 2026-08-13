@@ -570,6 +570,7 @@ def _export_timeline(
                         audio_settings,
                         video_encoder,
                         output,
+                        use_hwaccel=use_hwaccel,
                     ),
                     check=True,
                 )
@@ -598,6 +599,7 @@ def _single_transcode_command(
     audio_settings: dict[str, Any],
     video_encoder: str,
     output: Path,
+    use_hwaccel: bool = False,
 ) -> list[str]:
     source_paths = list(dict.fromkeys(segment["source_path"] for segment in segments))
     input_indexes = {path: index for index, path in enumerate(source_paths)}
@@ -656,6 +658,8 @@ def _single_transcode_command(
 
     command = ["ffmpeg", "-hide_banner", "-loglevel", "error"]
     for path in source_paths:
+        if use_hwaccel and _supports_videotoolbox_hwaccel():
+            command.extend(["-hwaccel", "videotoolbox"])
         command.extend(["-i", path])
     command.extend(["-filter_complex", ";".join(filters), "-map", "[outv]"])
     if has_audio:

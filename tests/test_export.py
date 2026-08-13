@@ -2,12 +2,39 @@ import json
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
-from video_highlight.export import default_export_dir, export_run
+from video_highlight.export import _single_transcode_command, default_export_dir, export_run
 
 
 class ExportTests(unittest.TestCase):
+    def test_single_transcode_adds_videotoolbox_before_each_input(self):
+        segments = [
+            {"source_path": "/tmp/a.mp4", "start": 0.3, "end": 0.8},
+            {"source_path": "/tmp/b.mp4", "start": 1.0, "end": 1.5},
+        ]
+        probes = {
+            "/tmp/a.mp4": {"video_selector": "v:0", "audio_selector": None, "audio": None},
+            "/tmp/b.mp4": {"video_selector": "v:0", "audio_selector": None, "audio": None},
+        }
+
+        with patch("video_highlight.export._supports_videotoolbox_hwaccel", return_value=True):
+            command = _single_transcode_command(
+                segments,
+                probes,
+                {},
+                "h264_videotoolbox",
+                Path("/tmp/output.mp4"),
+                use_hwaccel=True,
+            )
+
+        self.assertEqual(command.count("-hwaccel"), 2)
+        for index, value in enumerate(command):
+            if value == "-hwaccel":
+                self.assertEqual(command[index + 1], "videotoolbox")
+                self.assertEqual(command[index + 2], "-i")
+
     def test_default_export_dir_uses_input_media_folder(self):
         run = {
             "run_id": "run-default-output",
