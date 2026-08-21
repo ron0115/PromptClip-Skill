@@ -150,6 +150,8 @@ class AgentPipelineTests(unittest.TestCase):
 
             self.assertEqual(result["analysis_mode"], "storyboard")
             self.assertEqual(result["quality_mode"], "fast")
+            self.assertIn("leading-obstruction-trim", result["analysis_prompt"])
+            self.assertEqual([item["preset_id"] for item in result["prompt_presets"]], ["leading-obstruction-trim"])
             self.assertEqual(len(result["candidates"]), 1)
             self.assertEqual(result["candidates"][0]["start"], 0.5)
 

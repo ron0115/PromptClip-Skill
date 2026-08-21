@@ -69,6 +69,8 @@ python3 -m video_highlight batches \
 
 5. Start read-only visual children for every storyboard batch. The batch is the dispatch unit: each child receives exactly one batch, never multiple batches merged into one large request. Maintain a bounded queue with at most two active children by default; dispatch the next queued batch as soon as a child completes. Use a bounded wait (normally 120 seconds) and one retry with a smaller payload. Pass compact storyboard metadata and each contact sheet as a `local_image`; do not pass original videos. A failed batch is `failed`, never an implicit rejection. Do not create one child per cell; the batch is the unit of parallel work.
 
+   Before every child call, compose `ANALYSIS_PROMPT` from all enabled prompt presets followed by the exact user Prompt, and use that same composed prompt for every storyboard batch. A disabled preset is omitted entirely. Prompt presets belong to this visual analysis request; they must not become a separate local filtering or export pass.
+
 Require exactly:
 
 ```json
@@ -126,7 +128,7 @@ python3 -m video_highlight batches \
   --output "$RUN_DIR/refinement-batches.json"
 ```
 
-Send each refinement batch to one read-only visual child, with no more than two active children and the remaining batches queued. Require one validated `decisions` item per known `window_id`; this is the semantic final decision. For a strict “every frame” Prompt, use dense samples in the candidate window and run a local per-frame verifier; one-second samples alone are not literal every-frame proof.
+Send each refinement batch to one read-only visual child, with no more than two active children and the remaining batches queued. Use the same composed `ANALYSIS_PROMPT` for these calls. Require one validated `decisions` item per known `window_id`; this is the semantic final decision. For a strict “every frame” Prompt, use dense samples in the candidate window and run a local per-frame verifier; one-second samples alone are not literal every-frame proof.
 
 Before export, compare the set of supplied refinement `window_id`s with the returned valid unique decision IDs. Retry missing or malformed decisions. If any remain missing, report `partial` and do not describe the output as a complete folder result.
 
@@ -139,6 +141,15 @@ python3 -m video_highlight export \
   --output "$EXPORT_DIR" \
   --mode precise
 ```
+
+## Default Prompt Presets
+
+The analysis prompt includes these built-in prompt presets before model evaluation:
+
+- `leading-obstruction-trim`: tells the model to avoid clips whose opening is visibly obstructed.
+
+Disable a preset by setting `PROMPTCLIP_DISABLED_PROMPT_PRESETS` to a comma-separated list of preset IDs.
+Prompt presets are analysis-prompt additions only. The visual Agent evaluates them during storyboard/refinement analysis; export does not run a second local obstruction scan, extract extra frames, or alter candidate timecodes. Enabling or disabling a preset must not change the Smart Export strategy or its normal throughput.
 
 ## Quality and Speed Rules
 
@@ -156,7 +167,7 @@ python3 -m video_highlight export \
 - Prefer `stream_copy` when every source stream has compatible parameters and every start/end boundary is keyframe-safe. This preserves the source video/audio streams and avoids decoding or re-encoding.
 - Use `single_transcode` when source parameters are compatible but a selected boundary is not keyframe-safe. Decode and encode the complete selected timeline in one FFmpeg process, while keeping source dimensions and audio settings when possible; do not transcode each segment separately.
 - Use `compatibility_transcode` when source parameters differ or the normal concat path fails. Normalize to a broadly playable H.264/AAC MP4, retaining the first source's dimensions as the output canvas and reusing source audio settings when available.
-- Record `export_profile`, `target_audio_bitrate`, `target_audio_sample_rate`, `target_audio_channels`, `export_strategy`, `source_preserved`, and `reencoded` in `segments.json`. A runtime fallback must record the strategy actually used, not the initially predicted strategy.
+- Record `export_profile`, `target_audio_bitrate`, `target_audio_sample_rate`, `target_audio_channels`, `analysis_prompt`, `prompt_presets`, `export_strategy`, `source_preserved`, and `reencoded` in `segments.json`. A runtime fallback must record the strategy actually used, not the initially predicted strategy.
 - If any batch fails, report `partial`, list failed batch IDs, and never claim the whole folder was analyzed.
 - Never require `HIGHLIGHT_API_KEY` or `HIGHLIGHT_MODEL` for the normal Skill path. The visual child Agent is the analysis engine.
 - Do not use the deterministic `mock` provider for user-facing results.

@@ -122,6 +122,8 @@ def export_run(
         "target_audio_bitrate": audio_settings.get("bit_rate"),
         "target_audio_sample_rate": audio_settings.get("sample_rate"),
         "target_audio_channels": audio_settings.get("channels"),
+        "analysis_prompt": run.get("analysis_prompt") or run.get("prompt"),
+        "prompt_presets": run.get("prompt_presets", []),
         "export_strategy": strategy,
         "source_preserved": strategy == _STRATEGY_STREAM_COPY,
         "reencoded": strategy in {_STRATEGY_SINGLE_TRANSCODE, _STRATEGY_COMPATIBILITY_TRANSCODE},

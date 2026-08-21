@@ -6,6 +6,7 @@ from typing import Any
 
 from .models import Asset, Candidate, ModelDecision, Sample, Window, validate_model_decisions
 from .providers import make_provider
+from .prompt_presets import compose_analysis_prompt
 from .segments import merge_candidates
 from .storage import load_run, save_run
 
@@ -26,8 +27,17 @@ def analyze_run(
         windows = windows[:max_windows]
 
     provider = make_provider(provider_name)
-    decisions = provider.analyze(prompt.strip(), windows, samples)
-    return _persist_decisions(run_dir, prompt.strip(), provider.name, os.environ.get("HIGHLIGHT_MODEL") or "mock-v1", decisions)
+    analysis_prompt, prompt_presets = compose_analysis_prompt(prompt)
+    decisions = provider.analyze(analysis_prompt, windows, samples)
+    return _persist_decisions(
+        run_dir,
+        prompt.strip(),
+        provider.name,
+        os.environ.get("HIGHLIGHT_MODEL") or "mock-v1",
+        decisions,
+        analysis_prompt=analysis_prompt,
+        prompt_presets=prompt_presets,
+    )
 
 
 def _persist_decisions(
@@ -37,6 +47,8 @@ def _persist_decisions(
     model_name: str,
     decisions: list[ModelDecision],
     windows_data: list[dict[str, Any]] | None = None,
+    analysis_prompt: str | None = None,
+    prompt_presets: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     run = load_run(run_dir)
     assets = {item["asset_id"]: Asset(**item) for item in run["assets"]}
@@ -78,6 +90,8 @@ def _persist_decisions(
         candidate.candidate_id = f"candidate-{index:06d}"
 
     run["prompt"] = prompt.strip()
+    run["analysis_prompt"] = analysis_prompt or prompt.strip()
+    run["prompt_presets"] = prompt_presets or []
     run["provider"] = provider_name
     run["model"] = model_name
     run["mode"] = "precise"

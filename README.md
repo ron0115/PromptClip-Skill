@@ -22,7 +22,17 @@ The export stage automatically chooses the best path for the selected timeline:
 - `single_transcode`: source parameters are compatible but a cut needs frame-accurate decoding. This keeps source dimensions and audio settings when possible while re-encoding the selected timeline once into a platform-friendly MP4.
 - `compatibility_transcode`: source parameters differ or the normal concat path fails. Inputs are normalized to a broadly playable H.264/AAC MP4, keeping the first source's dimensions and using source audio settings when available.
 
-`segments.json` records `export_strategy`, `export_profile`, `target_audio_bitrate`, `target_audio_sample_rate`, `target_audio_channels`, `source_preserved`, and `reencoded`. `highlight-reel.mp4` is the primary media artifact; `timeline.fcpxml` and the JSON manifest retain the source time ranges for editing applications. Fast and precise modes use this same export decision tree.
+`segments.json` records `export_strategy`, `export_profile`, `target_audio_bitrate`, `target_audio_sample_rate`, `target_audio_channels`, `analysis_prompt`, `prompt_presets`, `source_preserved`, and `reencoded`. `highlight-reel.mp4` is the primary media artifact; `timeline.fcpxml` and the JSON manifest retain the source time ranges for editing applications. Fast and precise modes use this same export decision tree.
+
+## Prompt Presets
+
+The analysis prompt includes these built-in prompt presets before model evaluation:
+
+- `leading-obstruction-trim`: tells the model to avoid clips whose opening is visibly obstructed.
+
+Disable a preset by setting `PROMPTCLIP_DISABLED_PROMPT_PRESETS` to a comma-separated list of preset IDs.
+
+Presets are analysis-prompt additions only. They are evaluated by the visual Agent and do not add a local video scan, export-time frame extraction, or post-export timeline adjustment. The export stage therefore keeps the same Smart Export strategy and throughput whether this preset is enabled or disabled.
 
 ## Quick start
 

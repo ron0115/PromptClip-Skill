@@ -7,6 +7,7 @@ from .analysis import _persist_decisions
 from .models import Asset, Candidate, Sample, Window, validate_model_decisions
 from .modes import resolve_mode
 from .segments import build_candidate_windows, merge_candidates
+from .prompt_presets import compose_analysis_prompt
 from .storage import load_json, load_run, save_run
 from .storyboards import build_storyboard_batches
 
@@ -169,7 +170,10 @@ def apply_storyboard_decisions(
         candidates = merged_candidates
     for index, candidate in enumerate(sorted(candidates, key=lambda item: (item.asset_id, item.start))):
         candidate.candidate_id = f"candidate-{index:06d}"
+    analysis_prompt, prompt_presets = compose_analysis_prompt(prompt)
     run["prompt"] = prompt.strip()
+    run["analysis_prompt"] = analysis_prompt
+    run["prompt_presets"] = prompt_presets
     run["mode"] = resolve_mode(prompt, mode)
     run["quality_mode"] = run["mode"]
     run["provider"] = "agent-storyboard"
@@ -199,6 +203,7 @@ def apply_agent_decisions(
     decisions = validate_model_decisions(raw, known_window_ids)
     if len({decision.window_id for decision in decisions}) != len(decisions):
         raise ValueError("Duplicate window_id across agent decisions")
+    analysis_prompt, prompt_presets = compose_analysis_prompt(prompt)
     return _persist_decisions(
         run_dir,
         prompt.strip(),
@@ -206,4 +211,6 @@ def apply_agent_decisions(
         "codex-subagent",
         decisions,
         windows_data=analysis_windows,
+        analysis_prompt=analysis_prompt,
+        prompt_presets=prompt_presets,
     )

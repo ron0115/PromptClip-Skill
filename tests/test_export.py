@@ -140,6 +140,36 @@ class ExportTests(unittest.TestCase):
             check=True,
         )
 
+    def make_source_with_leading_obstruction(self, path: Path) -> None:
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-f",
+                "lavfi",
+                "-i",
+                "testsrc2=s=160x90:r=10:d=4",
+                "-f",
+                "lavfi",
+                "-i",
+                "anullsrc=channel_layout=stereo:sample_rate=48000",
+                "-vf",
+                "drawbox=x=0:y=0:w=iw:h=ih/2:color=black@1:t=fill:enable='lt(t,2)'",
+                "-shortest",
+                "-c:v",
+                "libx264",
+                "-g",
+                "10",
+                "-c:a",
+                "aac",
+                "-y",
+                str(path),
+            ],
+            check=True,
+        )
+
     def test_export_creates_one_merged_mp4_for_multiple_segments(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -646,6 +676,40 @@ class ExportTests(unittest.TestCase):
             manifest = export_run(run, root / "export", include_pending=True)
 
             self.assertEqual(manifest["mode"], "fast")
+
+    def test_leading_obstruction_prompt_preset_does_not_change_export_timeline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.mp4"
+            self.make_source_with_leading_obstruction(source)
+            run = {
+                "run_id": "run-leading-obstruction",
+                "prompt": "海边遛娃风光，捕捉宝宝的精彩瞬间和海边风景，按素材的拍摄时间排序",
+                "analysis_prompt": "Prompt presets:\n- leading-obstruction-trim: Avoid segments whose opening is visibly obstructed.\n\nUser prompt:\n海边遛娃风光，捕捉宝宝的精彩瞬间和海边风景，按素材的拍摄时间排序",
+                "prompt_presets": [
+                    {
+                        "preset_id": "leading-obstruction-trim",
+                        "enabled": True,
+                        "description": "Avoid segments whose opening is visibly obstructed.",
+                        "prompt": "When a candidate clip starts with an obvious obstruction, treat that opening as unusable.",
+                    }
+                ],
+                "provider": "agent-storyboard",
+                "quality_mode": "fast",
+                "assets": [
+                    {"asset_id": "asset", "path": str(source), "duration": 3.0, "has_audio": True}
+                ],
+                "candidates": [
+                    {"candidate_id": "candidate", "asset_id": "asset", "start": 0.0, "end": 3.0, "status": "pending"}
+                ],
+            }
+
+            manifest = export_run(run, root / "export", include_pending=True, mode="fast", export_profile="source")
+
+            self.assertEqual(manifest["segments"][0]["start"], 0.0)
+            self.assertEqual(manifest["segments"][0]["end"], 3.0)
+            self.assertNotIn("prompt_preset_adjustments", manifest)
+            self.assertEqual(manifest["export_strategy"], "stream_copy")
 
     def test_precise_mode_rejects_pending_candidates(self):
         with tempfile.TemporaryDirectory() as directory:
