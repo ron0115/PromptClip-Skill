@@ -16,17 +16,20 @@ The repository is named `PromptClip-Skill`; `video-highlight-extractor` remains 
 - Keep the source files private and unchanged.
 - Review the result before export.
 - Get one reel, one timeline, and one manifest instead of a pile of partial clips.
+- It works like a waste-footage filter: drop long stretches with no signal, keep the moments worth watching.
 
 ## Representative demo
 
 Think of the most common case: a phone folder full of messy footage and one simple request.
+
+For example, short clips of a baby playing, a beach walk, or a weekend outing often contain a lot of throwaway footage. PromptClip-Skill is meant to filter that out first, then keep the moments that actually matter.
 
 ```text
 Input
 - /Users/ron0115/Documents/手机视频素材
 
 Prompt
-- 保留表情清晰、动作完整、适合直接分享的片段
+- 保留表情清晰、动作完整、适合直接分享的片段，过滤掉大量废片
 
 Output
 - highlight-reel.mp4
