@@ -1,0 +1,27 @@
+{
+  "scenario": "skatepark-highlights",
+  "prompt_file": "prompt.txt",
+  "selection_policy": "Keep completed tricks and landings; reject preparation, failures, repeats, unstable shots, and empty shots.",
+  "expected_input_mix": {
+    "total_clips": 10,
+    "keep_candidates": 3,
+    "reject_candidates": 7
+  },
+  "segments": [
+    {
+      "source": "clip-03.mp4",
+      "label": "clean landing",
+      "expected_decision": "keep"
+    },
+    {
+      "source": "clip-06.mp4",
+      "label": "complete trick",
+      "expected_decision": "keep"
+    },
+    {
+      "source": "clip-09.mp4",
+      "label": "stable successful run",
+      "expected_decision": "keep"
+    }
+  ]
+}

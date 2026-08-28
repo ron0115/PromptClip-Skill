@@ -10,6 +10,25 @@ PromptClip-Skill 是一个本地优先、Prompt 驱动的视频高光提取工�
 
 仓库地址：https://github.com/ron0115/PromptClip-Skill
 
+> 如果你也有一堆“拍下来却没时间看”的生活视频，欢迎先试用，再给项目一个 Star。Star 会帮助我判断这个方向是否值得继续投入。
+
+## 30 秒判断它是否适合你
+
+适合：手机、运动相机或大疆 Nano 拍了很多宝宝、旅行、宠物、活动碎片，只想留下“真正发生了事情”的片段。
+
+不适合：希望完全不安装本地依赖、直接在线上传素材，或期待自动生成带复杂转场和配乐的成片。
+
+最小体验路径：
+
+```text
+1. 安装/启用这个 Skill
+2. 指定一个本地视频文件夹
+3. 用一句话描述“保留什么”和“过滤什么”
+4. 先查看时间戳清单，再导出 highlight-reel.mp4
+```
+
+这个项目的核心不是“让 AI 随便剪一条片”，而是把最耗时的第一步变成可复查的筛选：先过滤废片，再决定哪些瞬间值得进入成片。
+
 仓库名是 `PromptClip-Skill`；`video-highlight-extractor` 是稳定的 Codex Skill 名称和 Python 包名，用于兼容已有流程。
 
 ## 它解决什么问题
@@ -60,6 +79,8 @@ flowchart LR
     H --> J[timeline.fcpxml]
     H --> K[review page]
 ```
+
+想用没有隐私风险的素材演示，可以直接参考 [`examples/skatepark`](examples/skatepark/)：准备一组包含成功动作、失败动作、重复拍摄和空镜头的公开授权素材，再用 Prompt 让工具筛出真正完成的动作。仓库不携带第三方视频，避免把作者素材或许可证误打包进来。
 
 ## Codex Skill 用法
 

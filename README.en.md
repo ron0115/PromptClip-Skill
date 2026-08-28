@@ -8,6 +8,25 @@ PromptClip-Skill is a local-first, prompt-driven video highlight extractor. It k
 
 Repository: https://github.com/ron0115/PromptClip-Skill
 
+> If you also have a folder of videos you recorded but never have time to review, try the workflow and leave a Star if it is useful. Stars help me decide whether this direction is worth continuing.
+
+## Is this for you?
+
+Good fit: phone, action-camera, or DJI Nano-style clips from family life, travel, pets, or events where you want to keep the moments in which something meaningful actually happens.
+
+Not a fit: users looking for a zero-setup hosted upload service, or a fully automatic editor with elaborate transitions and music.
+
+The shortest path:
+
+```text
+1. Install or enable the Skill
+2. Point it at a local video folder
+3. Describe what to keep and what to filter out
+4. Review the timestamp manifest, then export highlight-reel.mp4
+```
+
+The point is not to ask AI to produce a random montage. It is to make the most time-consuming first step reviewable: filter the throwaway footage first, then decide which moments belong in the final reel.
+
 The repository is named `PromptClip-Skill`; `video-highlight-extractor` remains the stable Codex Skill and Python package name for compatibility.
 
 ## Why it is useful
@@ -54,6 +73,8 @@ flowchart LR
     H --> J[timeline.fcpxml]
     H --> K[review page]
 ```
+
+For a privacy-safe showcase, use [`examples/skatepark`](examples/skatepark/): bring a set of appropriately licensed clips containing successful tricks, failed attempts, repeated takes, and empty shots, then use the Prompt to keep only completed actions. Third-party videos are intentionally not bundled in this repository; record each creator and license in `SOURCES.md`.
 
 ## Codex Skill mode
 
