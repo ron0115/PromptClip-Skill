@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "run_id": "run-20260828-102754-576082",
+  "prompt": "Keep the meaningful coffee-making moments: coffee or milk being poured, the latte pattern forming, the finished drink, and stable close-ups of the completed result. Remove waiting, preparation with no visible change, repeated takes, severe camera shake, blocked views, and empty shots. Preserve the original order and keep the final reel under 30 seconds.",
+  "provider": "agent-storyboard",
+  "mode": "fast",
+  "export_profile": "platform",
+  "video_encoder": "h264_videotoolbox",
+  "target_audio_bitrate": 160000,
+  "target_audio_sample_rate": 48000,
+  "target_audio_channels": 2,
+  "analysis_prompt": "Prompt presets:\n- leading-obstruction-trim: When a candidate clip starts with an obvious obstruction, treat that opening as unusable. Prefer the first clearly visible moment instead of keeping a blocked lead-in.\n\nUser prompt:\nKeep the meaningful coffee-making moments: coffee or milk being poured, the latte pattern forming, the finished drink, and stable close-ups of the completed result. Remove waiting, preparation with no visible change, repeated takes, severe camera shake, blocked views, and empty shots. Preserve the original order and keep the final reel under 30 seconds.",
+  "prompt_presets": [
+    {
+      "preset_id": "leading-obstruction-trim",
+      "enabled": true,
+      "description": "Avoid segments whose opening is visibly obstructed.",
+      "prompt": "When a candidate clip starts with an obvious obstruction, treat that opening as unusable. Prefer the first clearly visible moment instead of keeping a blocked lead-in."
+    }
+  ],
+  "export_strategy": "compatibility_transcode",
+  "source_preserved": false,
+  "reencoded": true,
+  "segments": [
+    {
+      "candidate_id": "candidate-000000",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "start": 1.5,
+      "end": 14.056,
+      "score": 0.96,
+      "tags": [
+        "pouring",
+        "latte-art",
+        "finished-drink"
+      ],
+      "reason": "Keep the continuous pour, visible latte-art formation, and stable finished-drink close-ups. Early setup frames do not yet show the requested meaningful change.",
+      "status": "pending",
+      "source_window_ids": [
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000"
+      ],
+      "source_path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/examples/coffee/input/latte-art-leaf-01.webm"
+    },
+    {
+      "candidate_id": "candidate-000001",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "start": 0.0,
+      "end": 15.5,
+      "score": 0.93,
+      "tags": [
+        "pouring",
+        "coffee-making",
+        "finished-drink"
+      ],
+      "reason": "Keep the visible milk pour and the finished cup reveal. The opening frame is mostly setup; later frames after the result become repetitive.",
+      "status": "pending",
+      "source_window_ids": [
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000"
+      ],
+      "source_path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/examples/coffee/input/making-cappuccino-coffee.webm"
+    }
+  ],
+  "merged_path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/examples/coffee/real-run/highlight-reel.mp4"
+}

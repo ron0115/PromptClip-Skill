@@ -1,0 +1,439 @@
+{
+  "schema_version": 1,
+  "run_id": "run-20260828-102754-576082",
+  "created_at": "2026-08-28T10:27:56.067613+00:00",
+  "input_dir": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/examples/coffee/input",
+  "prompt": "Keep the meaningful coffee-making moments: coffee or milk being poured, the latte pattern forming, the finished drink, and stable close-ups of the completed result. Remove waiting, preparation with no visible change, repeated takes, severe camera shake, blocked views, and empty shots. Preserve the original order and keep the final reel under 30 seconds.",
+  "provider": "agent-storyboard",
+  "settings": {
+    "sample_interval": 1.0,
+    "sample_width": 640,
+    "hwaccel": "videotoolbox",
+    "window_seconds": 4.0,
+    "window_stride_seconds": 3.0,
+    "padding_seconds": 1.0,
+    "merge_gap_seconds": 0.5,
+    "minimum_segment_seconds": 2.0
+  },
+  "assets": [
+    {
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/examples/coffee/input/latte-art-leaf-01.webm",
+      "sha256": "8c3fe8c90b748dede737ec99140b8b1ae68db8db1accb26edd1a1cf6d1b008fa",
+      "size_bytes": 2365028,
+      "duration": 14.056,
+      "width": 720,
+      "height": 480,
+      "fps": 29.97002997002997,
+      "video_codec": "vp9",
+      "audio_codec": "opus",
+      "has_audio": true
+    },
+    {
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/examples/coffee/input/making-cappuccino-coffee.webm",
+      "sha256": "3d1f16d8ef452badd2068201c330b67a5014e091c948e50b606bc4011ad3be53",
+      "size_bytes": 1593680,
+      "duration": 17.666,
+      "width": 360,
+      "height": 640,
+      "fps": 30.0,
+      "video_codec": "vp9",
+      "audio_codec": "opus",
+      "has_audio": true
+    }
+  ],
+  "samples": [
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000000",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 0.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000001.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000001",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 1.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000002.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000002",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 2.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000003.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000003",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 3.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000004.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000004",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 4.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000005.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000005",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 5.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000006.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000006",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 6.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000007.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000007",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 7.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000008.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000008",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 8.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000009.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000009",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 9.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000010.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000010",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 10.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000011.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000011",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 11.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000012.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000012",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 12.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000013.jpg"
+    },
+    {
+      "sample_id": "latte-art-leaf-01-8c3fe8c90b74-sample-000013",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "timestamp": 13.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/latte-art-leaf-01-8c3fe8c90b74/000014.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000000",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 0.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000001.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000001",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 1.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000002.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000002",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 2.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000003.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000003",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 3.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000004.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000004",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 4.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000005.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000005",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 5.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000006.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000006",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 6.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000007.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000007",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 7.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000008.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000008",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 8.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000009.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000009",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 9.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000010.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000010",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 10.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000011.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000011",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 11.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000012.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000012",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 12.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000013.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000013",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 13.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000014.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000014",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 14.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000015.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000015",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 15.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000016.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000016",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 16.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000017.jpg"
+    },
+    {
+      "sample_id": "making-cappuccino-coffee-3d1f16d8ef45-sample-000017",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "timestamp": 17.0,
+      "path": "/Users/ron0115/Desktop/Personal/PromptClip-Skill/work/coffee-real-20260828-v2/run-20260828-102754-576082/frames/making-cappuccino-coffee-3d1f16d8ef45/000018.jpg"
+    }
+  ],
+  "windows": [
+    {
+      "window_id": "latte-art-leaf-01-8c3fe8c90b74-000000",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "start": 0.0,
+      "end": 4.0,
+      "sample_ids": [
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000000",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000001",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000002",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000003"
+      ]
+    },
+    {
+      "window_id": "latte-art-leaf-01-8c3fe8c90b74-000001",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "start": 3.0,
+      "end": 7.0,
+      "sample_ids": [
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000003",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000004",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000005",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000006"
+      ]
+    },
+    {
+      "window_id": "latte-art-leaf-01-8c3fe8c90b74-000002",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "start": 6.0,
+      "end": 10.0,
+      "sample_ids": [
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000006",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000007",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000008",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000009"
+      ]
+    },
+    {
+      "window_id": "latte-art-leaf-01-8c3fe8c90b74-000003",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "start": 9.0,
+      "end": 13.0,
+      "sample_ids": [
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000009",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000010",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000011",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000012"
+      ]
+    },
+    {
+      "window_id": "latte-art-leaf-01-8c3fe8c90b74-000004",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "start": 12.0,
+      "end": 16.0,
+      "sample_ids": [
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000012",
+        "latte-art-leaf-01-8c3fe8c90b74-sample-000013"
+      ]
+    },
+    {
+      "window_id": "making-cappuccino-coffee-3d1f16d8ef45-000005",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "start": 0.0,
+      "end": 4.0,
+      "sample_ids": [
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000000",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000001",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000002",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000003"
+      ]
+    },
+    {
+      "window_id": "making-cappuccino-coffee-3d1f16d8ef45-000006",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "start": 3.0,
+      "end": 7.0,
+      "sample_ids": [
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000003",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000004",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000005",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000006"
+      ]
+    },
+    {
+      "window_id": "making-cappuccino-coffee-3d1f16d8ef45-000007",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "start": 6.0,
+      "end": 10.0,
+      "sample_ids": [
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000006",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000007",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000008",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000009"
+      ]
+    },
+    {
+      "window_id": "making-cappuccino-coffee-3d1f16d8ef45-000008",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "start": 9.0,
+      "end": 13.0,
+      "sample_ids": [
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000009",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000010",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000011",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000012"
+      ]
+    },
+    {
+      "window_id": "making-cappuccino-coffee-3d1f16d8ef45-000009",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "start": 12.0,
+      "end": 16.0,
+      "sample_ids": [
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000012",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000013",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000014",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000015"
+      ]
+    },
+    {
+      "window_id": "making-cappuccino-coffee-3d1f16d8ef45-000010",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "start": 15.0,
+      "end": 19.0,
+      "sample_ids": [
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000015",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000016",
+        "making-cappuccino-coffee-3d1f16d8ef45-sample-000017"
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "candidate-000000",
+      "asset_id": "latte-art-leaf-01-8c3fe8c90b74",
+      "start": 1.5,
+      "end": 14.056,
+      "score": 0.96,
+      "tags": [
+        "pouring",
+        "latte-art",
+        "finished-drink"
+      ],
+      "reason": "Keep the continuous pour, visible latte-art formation, and stable finished-drink close-ups. Early setup frames do not yet show the requested meaningful change.",
+      "status": "pending",
+      "source_window_ids": [
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+        "latte-art-leaf-01-8c3fe8c90b74-detail-0000"
+      ]
+    },
+    {
+      "candidate_id": "candidate-000001",
+      "asset_id": "making-cappuccino-coffee-3d1f16d8ef45",
+      "start": 0.0,
+      "end": 15.5,
+      "score": 0.93,
+      "tags": [
+        "pouring",
+        "coffee-making",
+        "finished-drink"
+      ],
+      "reason": "Keep the visible milk pour and the finished cup reveal. The opening frame is mostly setup; later frames after the result become repetitive.",
+      "status": "pending",
+      "source_window_ids": [
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+        "making-cappuccino-coffee-3d1f16d8ef45-detail-0000"
+      ]
+    }
+  ],
+  "analysis_error": null,
+  "analysis_prompt": "Prompt presets:\n- leading-obstruction-trim: When a candidate clip starts with an obvious obstruction, treat that opening as unusable. Prefer the first clearly visible moment instead of keeping a blocked lead-in.\n\nUser prompt:\nKeep the meaningful coffee-making moments: coffee or milk being poured, the latte pattern forming, the finished drink, and stable close-ups of the completed result. Remove waiting, preparation with no visible change, repeated takes, severe camera shake, blocked views, and empty shots. Preserve the original order and keep the final reel under 30 seconds.",
+  "prompt_presets": [
+    {
+      "preset_id": "leading-obstruction-trim",
+      "enabled": true,
+      "description": "Avoid segments whose opening is visibly obstructed.",
+      "prompt": "When a candidate clip starts with an obvious obstruction, treat that opening as unusable. Prefer the first clearly visible moment instead of keeping a blocked lead-in."
+    }
+  ],
+  "mode": "fast",
+  "quality_mode": "fast",
+  "model": "codex-subagent",
+  "analysis_mode": "detail-storyboard",
+  "analysis_storyboard_count": 2,
+  "analysis_windows": []
+}

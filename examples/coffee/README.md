@@ -6,12 +6,15 @@ This demo uses openly licensed footage downloaded from Wikimedia Commons. It is 
 
 ![Coffee highlights showcase](../../assets/coffee-demo.gif)
 
-The [full MP4](showcase/coffee-highlights.mp4) is a short, manually selected reference edit assembled from the two source videos. It is included to make the result easy to understand on GitHub; it is not presented as an AI-generated output. The individual source clips are also kept in `showcase/` so the construction is inspectable.
+The [full MP4](showcase/coffee-highlights.mp4) is the output of a real `fast`-mode Skill run. It scanned both input videos, selected two candidate segments from storyboard frames, and exported a 28-second reel. The decision file, `segments.json`, `run-report.json`, and FCPXML timeline are included in [`real-run/`](real-run/) for inspection.
+
+The original OGV download is archived in `source-original/`; the WebM copy in `input/` contains the same footage and is the file used by the Skill run because it is more broadly supported by the local media scanner.
 
 ## Files
 
-- `input/latte-art-leaf-01.ogv` - CC0 latte-art footage
+- `input/latte-art-leaf-01.webm` - CC0 latte-art footage, normalized from the original OGV for Skill compatibility
 - `input/making-cappuccino-coffee.webm` - CC BY-SA 4.0 coffee-making footage
+- `source-original/latte-art-leaf-01.ogv` - original Wikimedia download
 - [`prompt.txt`](prompt.txt) - reusable filtering Prompt
 - [`SOURCES.md`](SOURCES.md) - attribution and license records
 - [`showcase/coffee-highlights.mp4`](showcase/coffee-highlights.mp4) - short reference edit

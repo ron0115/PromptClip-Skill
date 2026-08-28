@@ -12,9 +12,9 @@ PromptClip-Skill 是一个本地优先、Prompt 驱动的视频高光提取工�
 
 ![Coffee highlights showcase](assets/coffee-demo.gif)
 
-这是一组用 Wikimedia Commons 公开授权素材制作的 showcase：输入几段咖啡制作视频，Prompt 只保留倒奶、拉花形成和成品展示，过滤等待、重复和无变化镜头。下载 [完整 MP4 预览](examples/coffee/showcase/coffee-highlights.mp4)，或直接查看 [`examples/coffee`](examples/coffee/) 的素材、Prompt 和来源记录。
+这是一次真实运行的结果：输入 2 段 Wikimedia Commons 公开授权咖啡视频，Prompt 只保留倒奶、拉花形成和成品展示，过滤等待、重复和无变化镜头。Skill 扫描 32 个采样点，导出 2 个候选片段，最终生成 28 秒高光视频。下载 [完整 MP4 预览](examples/coffee/showcase/coffee-highlights.mp4)，或查看 [`examples/coffee`](examples/coffee/) 的素材、Prompt、运行清单和来源记录。
 
-> 说明：GIF 是为了展示效果而手工选取并拼接的参考结果，不代表已经运行过 Codex 分析；真实运行请按示例 Prompt 执行，并在导出前复查时间线。
+> 说明：这是 `fast` 模式的真实运行结果。Storyboard 决策由视觉 Agent 根据采样画面完成，导出前仍应复查时间线；完整运行证据保存在 `examples/coffee/real-run/`。
 
 仓库地址：https://github.com/ron0115/PromptClip-Skill
 
@@ -90,7 +90,7 @@ flowchart LR
 
 想用没有隐私风险的素材演示，可以直接参考 [`examples/skatepark`](examples/skatepark/)：准备一组包含成功动作、失败动作、重复拍摄和空镜头的公开授权素材，再用 Prompt 让工具筛出真正完成的动作。仓库不携带第三方视频，避免把作者素材或许可证误打包进来。
 
-仓库还提供了已下载的公开授权咖啡素材 Demo：[`examples/coffee`](examples/coffee/)。它用拉花和咖啡制作过程展示“保留关键变化、过滤等待和重复镜头”，并在 `SOURCES.md` 中记录作者与许可证。
+仓库还提供了已下载的公开授权咖啡素材 Demo：[`examples/coffee`](examples/coffee/)。它用拉花和咖啡制作过程展示“保留关键变化、过滤等待和重复镜头”，并在 `SOURCES.md` 中记录作者与许可证。原始 OGV 文件放在 `source-original/`，Skill 实际运行使用兼容性更好的 WebM 副本。
 
 ## Codex Skill 用法
 

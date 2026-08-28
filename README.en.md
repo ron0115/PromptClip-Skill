@@ -10,9 +10,9 @@ PromptClip-Skill is a local-first, prompt-driven video highlight extractor. It k
 
 ![Coffee highlights showcase](assets/coffee-demo.gif)
 
-This showcase uses openly licensed footage from Wikimedia Commons. The Prompt keeps pouring, latte-art formation, and the finished drink, while filtering waiting, repeated takes, and shots with no visible change. Download the [full MP4 preview](examples/coffee/showcase/coffee-highlights.mp4), or inspect the source footage, Prompt, and attribution records in [`examples/coffee`](examples/coffee/).
+This is a real Skill run using two openly licensed Wikimedia Commons coffee videos. The Prompt keeps pouring, latte-art formation, and the finished drink, while filtering waiting, repeated takes, and shots with no visible change. The Skill scanned 32 samples, selected two candidate segments, and exported a 28-second highlight reel. Download the [full MP4 preview](examples/coffee/showcase/coffee-highlights.mp4), or inspect the source footage, Prompt, run manifest, and attribution records in [`examples/coffee`](examples/coffee/).
 
-> Note: the GIF is a manually selected and concatenated reference showcase, not a claim that Codex analyzed these clips. Run the example Prompt for a real extraction and review the timeline before exporting.
+> Note: this is a real `fast`-mode run. Storyboard decisions were made by a visual Agent from sampled frames; review the timeline before treating the export as final. The run evidence is available in `examples/coffee/real-run/`.
 
 Repository: https://github.com/ron0115/PromptClip-Skill
 
@@ -84,7 +84,7 @@ flowchart LR
 
 For a privacy-safe showcase, use [`examples/skatepark`](examples/skatepark/): bring a set of appropriately licensed clips containing successful tricks, failed attempts, repeated takes, and empty shots, then use the Prompt to keep only completed actions. Third-party videos are intentionally not bundled in this repository; record each creator and license in `SOURCES.md`.
 
-The repository also includes a downloaded, openly licensed coffee demo in [`examples/coffee`](examples/coffee/). It demonstrates keeping meaningful changes in a latte-making process while filtering waiting and repeated shots, with creator and license records in `SOURCES.md`.
+The repository also includes a downloaded, openly licensed coffee demo in [`examples/coffee`](examples/coffee/). It demonstrates keeping meaningful changes in a latte-making process while filtering waiting and repeated shots, with creator and license records in `SOURCES.md`. The original OGV is archived in `source-original/`; the Skill run uses a more broadly supported WebM copy.
 
 ## Codex Skill mode
 

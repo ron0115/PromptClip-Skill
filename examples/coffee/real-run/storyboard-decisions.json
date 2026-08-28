@@ -1,0 +1,16 @@
+[
+  {
+    "storyboard_id": "latte-art-leaf-01-8c3fe8c90b74-detail-0000",
+    "keep_cells": [3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "score": 0.96,
+    "tags": ["pouring", "latte-art", "finished-drink"],
+    "reason": "Keep the continuous pour, visible latte-art formation, and stable finished-drink close-ups. Early setup frames do not yet show the requested meaningful change."
+  },
+  {
+    "storyboard_id": "making-cappuccino-coffee-3d1f16d8ef45-detail-0000",
+    "keep_cells": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "score": 0.93,
+    "tags": ["pouring", "coffee-making", "finished-drink"],
+    "reason": "Keep the visible milk pour and the finished cup reveal. The opening frame is mostly setup; later frames after the result become repetitive."
+  }
+]
