@@ -6,6 +6,14 @@ PromptClip-Skill is a local-first, prompt-driven video highlight extractor. It k
 
 ![PromptClip-Skill demo flow](assets/demo-flow.svg)
 
+### Public demo: keep the meaningful coffee moments
+
+![Coffee highlights showcase](assets/coffee-demo.gif)
+
+This showcase uses openly licensed footage from Wikimedia Commons. The Prompt keeps pouring, latte-art formation, and the finished drink, while filtering waiting, repeated takes, and shots with no visible change. Download the [full MP4 preview](examples/coffee/showcase/coffee-highlights.mp4), or inspect the source footage, Prompt, and attribution records in [`examples/coffee`](examples/coffee/).
+
+> Note: the GIF is a manually selected and concatenated reference showcase, not a claim that Codex analyzed these clips. Run the example Prompt for a real extraction and review the timeline before exporting.
+
 Repository: https://github.com/ron0115/PromptClip-Skill
 
 > If you also have a folder of videos you recorded but never have time to review, try the workflow and leave a Star if it is useful. Stars help me decide whether this direction is worth continuing.
@@ -75,6 +83,8 @@ flowchart LR
 ```
 
 For a privacy-safe showcase, use [`examples/skatepark`](examples/skatepark/): bring a set of appropriately licensed clips containing successful tricks, failed attempts, repeated takes, and empty shots, then use the Prompt to keep only completed actions. Third-party videos are intentionally not bundled in this repository; record each creator and license in `SOURCES.md`.
+
+The repository also includes a downloaded, openly licensed coffee demo in [`examples/coffee`](examples/coffee/). It demonstrates keeping meaningful changes in a latte-making process while filtering waiting and repeated shots, with creator and license records in `SOURCES.md`.
 
 ## Codex Skill mode
 
